@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Courses - Admin</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        body { background: #f8fafc; font-family: 'Segoe UI'; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); padding: 1rem 0; }
+        .navbar-brand { font-size: 24px; font-weight: 700; color: white !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-nav .nav-link { color: rgba(255, 255, 255, 0.85) !important; font-weight: 500; margin: 0 10px; }
+        .navbar-nav .nav-link:hover { color: white !important; }
+        .btn-logout { background: rgba(255, 255, 255, 0.2) !important; border: 2px solid white !important; color: white !important; font-weight: 600; margin-left: 10px; }
+        .btn-logout:hover { background: white !important; color: #667eea !important; }
+        .sidebar { background: white; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 80px); padding: 30px 0; position: sticky; top: 80px; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; font-weight: 500; border-left: 3px solid transparent; margin: 0 10px; border-radius: 0 8px 8px 0; }
+        .sidebar-menu a:hover { background: #f3f4f6; color: #667eea; border-left-color: #667eea; }
+        .sidebar-menu a.active { background: #ede9fe; color: #667eea; border-left-color: #667eea; }
+        .main-content { padding: 40px 20px; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { font-size: 32px; font-weight: 700; color: #1f2937; }
+        .dashboard-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="bi bi-shield-lock"></i> AdminHub
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <button class="btn btn-logout" id="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="min-height: calc(100vh - 80px);">
+            <div class="col-md-3 col-lg-2 sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html" class="nav-item">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a></li>
+                    <li><a href="student.html" class="nav-item">
+                        <i class="bi bi-people"></i> Students
+                    </a></li>
+                    <li><a href="course.html" class="nav-item active">
+                        <i class="bi bi-book"></i> Courses
+                    </a></li>
+                    <li><a href="grade.html" class="nav-item">
+                        <i class="bi bi-star"></i> Grades
+                    </a></li>
+                    <li><a href="attendance.html" class="nav-item">
+                        <i class="bi bi-calendar-check"></i> Attendance
+                    </a></li>
+                    <li><a href="assignment.html" class="nav-item">
+                        <i class="bi bi-clipboard"></i> Assignments
+                    </a></li>
+                    <li><a href="analytics.html" class="nav-item">
+                        <i class="bi bi-bar-chart"></i> Analytics
+                    </a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="page-header">
+                    <h1>Manage Courses</h1>
+                </div>
+                <div class="dashboard-card">
+                    <p>Course management page coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <py-script>
+        class CourseManagement:
+            def __init__(self):
+                self.check_auth()
+                self.setup_event_listeners()
+                print("✓ Course Management initialized")
+
+            def check_auth(self):
+                token = document.localStorage.getItem("token")
+                role = document.localStorage.getItem("role")
+                if not token or role != "admin":
+                    window.location.href = "../login.html"
+
+            def setup_event_listeners(self):
+                logout_btn = document.getElementById("logout-btn")
+                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
+
+            def handle_logout(self, event):
+                document.localStorage.removeItem("token")
+                document.localStorage.removeItem("role")
+                window.location.href = "../login.html"
+
+        CourseManagement()
+    </py-script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grades - Student</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        body { background: #f8fafc; font-family: 'Segoe UI'; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); padding: 1rem 0; }
+        .navbar-brand { font-size: 24px; font-weight: 700; color: white !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-nav .nav-link { color: rgba(255, 255, 255, 0.85) !important; font-weight: 500; margin: 0 10px; }
+        .navbar-nav .nav-link:hover { color: white !important; }
+        .btn-logout { background: rgba(255, 255, 255, 0.2) !important; border: 2px solid white !important; color: white !important; font-weight: 600; margin-left: 10px; }
+        .btn-logout:hover { background: white !important; color: #667eea !important; }
+        .sidebar { background: white; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 80px); padding: 30px 0; position: sticky; top: 80px; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; font-weight: 500; border-left: 3px solid transparent; margin: 0 10px; border-radius: 0 8px 8px 0; }
+        .sidebar-menu a:hover { background: #f3f4f6; color: #667eea; border-left-color: #667eea; }
+        .sidebar-menu a.active { background: #ede9fe; color: #667eea; border-left-color: #667eea; }
+        .main-content { padding: 40px 20px; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { font-size: 32px; font-weight: 700; color: #1f2937; }
+        .grades-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .grades-table { width: 100%; border-collapse: collapse; }
+        .grades-table th { background: #f3f4f6; padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; font-size: 13px; }
+        .grades-table td { padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+        .grade-badge { padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; text-align: center; }
+        .grade-excellent { background: #dcfce7; color: #166534; }
+        .grade-good { background: #dbeafe; color: #1e40af; }
+        .grade-average { background: #fef3c7; color: #92400e; }
+        @media (max-width: 768px) { .page-header { margin-bottom: 20px; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="bi bi-mortarboard"></i> StudentHub
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <button class="btn btn-logout" id="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="min-height: calc(100vh - 80px);">
+            <div class="col-md-3 col-lg-2 sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html" class="nav-item">
+                        <i class="bi bi-speedometer2"></i> Overview
+                    </a></li>
+                    <li><a href="my-courses.html" class="nav-item">
+                        <i class="bi bi-book"></i> My Courses
+                    </a></li>
+                    <li><a href="my-grades.html" class="nav-item active">
+                        <i class="bi bi-star"></i> Grades
+                    </a></li>
+                    <li><a href="my-attendance.html" class="nav-item">
+                        <i class="bi bi-calendar-check"></i> Attendance
+                    </a></li>
+                    <li><a href="my-assignments.html" class="nav-item">
+                        <i class="bi bi-clipboard"></i> Assignments
+                    </a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="page-header">
+                    <h1>My Grades</h1>
+                </div>
+
+                <div class="grades-card">
+                    <div id="grades-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <py-script>
+        class MyGradesPage:
+            def __init__(self):
+                self.check_auth()
+                self.setup_event_listeners()
+                self.load_grades()
+                print("✓ My Grades Page initialized")
+
+            def check_auth(self):
+                token = document.localStorage.getItem("token")
+                role = document.localStorage.getItem("role")
+                if not token or role != "student":
+                    window.location.href = "../login.html"
+
+            def setup_event_listeners(self):
+                logout_btn = document.getElementById("logout-btn")
+                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
+
+            def load_grades(self):
+                grades_data = [
+                    {"course": "Introduction to Python", "assignment": "Project 1", "grade": "95", "percentage": "A+"},
+                    {"course": "Introduction to Python", "assignment": "Midterm Exam", "grade": "88", "percentage": "A-"},
+                    {"course": "Data Structures", "assignment": "Assignment 1", "grade": "87", "percentage": "A-"},
+                    {"course": "Data Structures", "assignment": "Quiz 1", "grade": "82", "percentage": "B+"},
+                    {"course": "Web Development", "assignment": "Website Project", "grade": "92", "percentage": "A"},
+                    {"course": "Web Development", "assignment": "CSS Challenge", "grade": "89", "percentage": "A-"},
+                    {"course": "Database Design", "assignment": "ER Diagram", "grade": "85", "percentage": "B+"},
+                    {"course": "Database Design", "assignment": "SQL Query", "grade": "80", "percentage": "B"},
+                ]
+
+                html = """
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Assignment/Exam</th>
+                            <th>Score</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """
+
+                for grade in grades_data:
+                    grade_class = "grade-excellent" if int(grade['grade']) >= 90 else "grade-good" if int(grade['grade']) >= 80 else "grade-average"
+                    html += f"""
+                        <tr>
+                            <td>{grade['course']}</td>
+                            <td>{grade['assignment']}</td>
+                            <td>{grade['grade']}</td>
+                            <td><span class="grade-badge {grade_class}">{grade['percentage']}</span></td>
+                        </tr>
+                    """
+
+                html += """
+                    </tbody>
+                </table>
+                """
+
+                document.getElementById("grades-container").innerHTML = html
+
+            def handle_logout(self, event):
+                document.localStorage.removeItem("token")
+                document.localStorage.removeItem("role")
+                window.location.href = "../login.html"
+
+        MyGradesPage()
+    </py-script>
+</body>
+</html>

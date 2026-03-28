@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+    <script type="module" src="https://pyscript.net/releases/2026.3.1/core.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Student Management System</h1>
+        <navigation-component></navigation-component>
+    </header>
+    <main>
+        <student-form-component></student-form-component>
+        <student-list-component></student-list-component>
+        <student-details-component></student-details-component>
+    </main>
+    <footer>
+        <p>&copy; 2023 Student Management System</p>
+    </footer>
+    <py-script>
+        from src.app import App
+        app = App()
+        app.run()
+    </py-script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grades</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <h1>Grades</h1>
+    <form id="grade-form">
+        <input type="number" id="student_id" placeholder="Student ID" required>
+        <input type="number" id="course_id" placeholder="Course ID" required>
+        <input type="number" step="0.01" id="grade" placeholder="Grade" required>
+        <button type="submit">Add Grade</button>
+    </form>
+    <ul id="grade-list"></ul>
+    <script src="../scripts/grade.js"></script>
+    <script defer src="https://pyscript.net/releases/2023.11.1/pyscript.js"></script>
+    <py-script src="../components/grade.py"></py-script>
+</body>
+</html>

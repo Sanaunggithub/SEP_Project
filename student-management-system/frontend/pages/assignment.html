@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assignments</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <h1>Assignments</h1>
+    <form id="assignment-form">
+        <input type="number" id="course_id" placeholder="Course ID" required>
+        <input type="text" id="title" placeholder="Title" required>
+        <input type="date" id="due_date" required>
+        <button type="submit">Add Assignment</button>
+    </form>
+    <ul id="assignment-list"></ul>
+    <script src="../scripts/assignment.js"></script>
+    <script defer src="https://pyscript.net/releases/2023.11.1/pyscript.js"></script>
+    <py-script src="../components/assignment.py"></py-script>
+</body>
+</html>

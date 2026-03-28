@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <h1>Attendance</h1>
+    <form id="attendance-form">
+        <input type="number" id="student_id" placeholder="Student ID" required>
+        <input type="number" id="course_id" placeholder="Course ID" required>
+        <input type="date" id="date" required>
+        <input type="checkbox" id="present"> Present
+        <button type="submit">Add Attendance</button>
+    </form>
+    <ul id="attendance-list"></ul>
+    <script src="../scripts/attendance.js"></script>
+    <script defer src="https://pyscript.net/releases/2023.11.1/pyscript.js"></script>
+    <py-script src="../components/attendance.py"></py-script>
+</body>
+</html>

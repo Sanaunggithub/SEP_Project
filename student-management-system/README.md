@@ -6,8 +6,8 @@ A comprehensive role-based student management system with separate admin and stu
 ## Features
 
 ### Admin Features
-- **Student Management**: Add, edit, and manage student records
-- **Course Management**: Create and manage courses
+   - **Student Management**: Add, edit, and manage student records
+   - **Course Management**: Create and manage courses
 - **Grade Management**: Track and update student grades
 - **Attendance Tracking**: Monitor student attendance records
 - **Assignment Management**: Create and track assignments

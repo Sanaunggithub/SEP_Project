@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from routers import student_router, course_router, grade_router, attendance_router, assignment_router, notification_router, analytics_router, auth_router
 from database import engine
 from models import Base
-from models import Student, Course, Grade, Attendance, Assignment, Notification, Analytics
+from models import Student, Course, Grade, Attendance, Assignment, Notification, ReportSnapshot
 
 Base.metadata.create_all(bind=engine)
 

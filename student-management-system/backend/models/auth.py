@@ -1,8 +1,52 @@
-from sqlalchemy import Column, Integer, String
-from .base import Base
+from sqlalchemy import Column, String, Text, Date, Enum, Index
+from sqlalchemy.orm import relationship
+from enum import Enum as PyEnum
+from datetime import date
+from .base import BaseModel
 
-class User(Base):
+class Role(PyEnum):
+    student = "student"
+    instructor = "instructor"
+    admin = "admin"
+
+class Gender(PyEnum):
+    male = "male"
+    female = "female"
+    other = "other"
+
+class AccountStatus(PyEnum):
+    active = "active"
+    suspended = "suspended"
+    inactive = "inactive"
+
+class User(BaseModel):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    password = Column(String)
+    
+    full_name = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    role = Column(Enum(Role), nullable=False)
+    profile_picture_url = Column(String(500), nullable=True)
+    phone_number = Column(String(20), nullable=False)
+    date_of_birth = Column(Date, nullable=False)
+    gender = Column(Enum(Gender), nullable=False)
+    address = Column(Text, nullable=False)
+    emergency_contact_name = Column(String(255), nullable=False)
+    emergency_contact_phone = Column(String(20), nullable=False)
+    account_status = Column(Enum(AccountStatus), default=AccountStatus.active, nullable=False)
+
+    # Relationships
+    taught_courses = relationship("Course", back_populates="instructor")
+    enrollments = relationship("CourseEnrollment", back_populates="student")
+    attendances = relationship("Attendance", back_populates="student", foreign_keys="Attendance.student_id")
+    grades = relationship("Grade", back_populates="student")
+    gpas = relationship("GPA", back_populates="student")
+    submissions = relationship("Submission", back_populates="student")
+    sent_notifications = relationship("Notification", back_populates="sender", foreign_keys="Notification.sender_id")
+    received_notifications = relationship("Notification", back_populates="recipient",  foreign_keys="Notification.recipient_id")
+    marked_attendances = relationship("Attendance", back_populates="marker", foreign_keys="Attendance.marked_by")
+    generated_reports = relationship("ReportSnapshot", back_populates="generator")
+
+    __table_args__ = (
+        Index('idx_user_email', 'email'),
+    )

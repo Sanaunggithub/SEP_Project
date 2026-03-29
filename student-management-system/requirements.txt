@@ -3,3 +3,10 @@ uvicorn
 sqlalchemy
 pydantic
 passlib[bcrypt]
+email-validator
+bcrypt==4.0.1
+python-jose[cryptography]
+python_multipart
+pydantic-settings
+pymysql
+alembic

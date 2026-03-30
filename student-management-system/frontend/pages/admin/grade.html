@@ -11,22 +11,42 @@
     <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
     <style>
+        :root { --primary: #667eea; --secondary: #764ba2; }
         body { background: #f8fafc; font-family: 'Segoe UI'; }
-        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); padding: 1rem 0; }
+        .navbar { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); padding: 1rem 0; }
         .navbar-brand { font-size: 24px; font-weight: 700; color: white !important; display: flex; align-items: center; gap: 10px; }
         .navbar-nav .nav-link { color: rgba(255, 255, 255, 0.85) !important; font-weight: 500; margin: 0 10px; }
         .navbar-nav .nav-link:hover { color: white !important; }
         .btn-logout { background: rgba(255, 255, 255, 0.2) !important; border: 2px solid white !important; color: white !important; font-weight: 600; margin-left: 10px; }
-        .btn-logout:hover { background: white !important; color: #667eea !important; }
+        .btn-logout:hover { background: white !important; color: var(--primary) !important; }
         .sidebar { background: white; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 80px); padding: 30px 0; position: sticky; top: 80px; }
         .sidebar-menu { list-style: none; }
-        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; font-weight: 500; border-left: 3px solid transparent; margin: 0 10px; border-radius: 0 8px 8px 0; }
-        .sidebar-menu a:hover { background: #f3f4f6; color: #667eea; border-left-color: #667eea; }
-        .sidebar-menu a.active { background: #ede9fe; color: #667eea; border-left-color: #667eea; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; font-weight: 500; border-left: 3px solid transparent; margin: 0 10px; border-radius: 0 8px 8px 0; transition: all 0.3s; }
+        .sidebar-menu a:hover { background: #f3f4f6; color: var(--primary); border-left-color: var(--primary); }
+        .sidebar-menu a.active { background: #ede9fe; color: var(--primary); border-left-color: var(--primary); }
         .main-content { padding: 40px 20px; }
-        .page-header { margin-bottom: 30px; }
-        .page-header h1 { font-size: 32px; font-weight: 700; color: #1f2937; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-header h1 { font-size: 32px; font-weight: 700; color: #1f2937; margin: 0; }
+        .btn-add { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border: none; color: white; font-weight: 600; padding: 10px 20px; border-radius: 8px; transition: transform 0.2s; }
+        .btn-add:hover { transform: translateY(-2px); color: white; }
         .dashboard-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-bar input { flex: 1; padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .table thead { background: #f8fafc; border-bottom: 2px solid #e5e7eb; }
+        .table th { padding: 15px; text-align: left; font-weight: 600; color: #6b7280; }
+        .table td { padding: 15px; border-bottom: 1px solid #e5e7eb; }
+        .table tbody tr:hover { background: #f9fafb; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; margin: 0 3px; }
+        .btn-edit { background: #3b82f6; color: white; border: none; }
+        .btn-delete { background: #ef4444; color: white; border: none; }
+        .grade-badge { padding: 6px 12px; border-radius: 6px; font-weight: 600; }
+        .grade-a { background: #dcfce7; color: #166534; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .form-label { font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+        .form-control { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+        .form-control:focus { border-color: var(--primary); box-shadow: none; }
+        .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -79,9 +99,94 @@
             <div class="col-md-9 col-lg-10 main-content">
                 <div class="page-header">
                     <h1>Manage Grades</h1>
+                    <button class="btn btn-add" id="add-grade-btn"><i class="bi bi-plus-lg"></i> Record Grade</button>
                 </div>
+
                 <div class="dashboard-card">
-                    <p>Grade management page coming soon...</p>
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Search by student or course...">
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Grade</th>
+                                    <th>Percentage</th>
+                                    <th>Recorded Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grades-list">
+                                <tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i><p>No grades recorded</p></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="gradeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title">Record Grade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="gradeForm">
+                        <div class="mb-3">
+                            <label class="form-label">Student *</label>
+                            <select class="form-control" id="student" required>
+                                <option>Select Student</option>
+                                <option value="John Smith">John Smith</option>
+                                <option value="Sarah Johnson">Sarah Johnson</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Course *</label>
+                            <select class="form-control" id="course" required>
+                                <option>Select Course</option>
+                                <option value="CS101">CS101</option>
+                                <option value="CS201">CS201</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Grade *</label>
+                            <select class="form-control" id="grade" required>
+                                <option value="">Select Grade</option>
+                                <option value="A">A (90-100%)</option>
+                                <option value="B">B (80-89%)</option>
+                                <option value="C">C (70-79%)</option>
+                                <option value="D">D (60-69%)</option>
+                                <option value="F">F (Below 60%)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Percentage *</label>
+                            <input type="number" class="form-control" id="percentage" min="0" max="100" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveGradeBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-bottom"><h5 class="modal-title">Delete Grade</h5></div>
+                <div class="modal-body"><p>Delete this grade record? This action cannot be undone.</p></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
                 </div>
             </div>
         </div>
@@ -91,26 +196,111 @@
     <py-script>
         class GradeManagement:
             def __init__(self):
-                self.check_auth()
+                self.grades = [
+                    {"id": 1, "student": "John Smith", "course": "CS101", "grade": "A", "percentage": 92, "date": "2024-03-10"},
+                    {"id": 2, "student": "Sarah Johnson", "course": "CS101", "grade": "A", "percentage": 95, "date": "2024-03-10"},
+                    {"id": 3, "student": "John Smith", "course": "CS201", "grade": "B", "percentage": 85, "date": "2024-03-05"},
+                ]
+                self.current_id = None
                 self.setup_event_listeners()
+                self.load_grades()
                 print("✓ Grade Management initialized")
 
-            def check_auth(self):
-                token = document.localStorage.getItem("token")
-                role = document.localStorage.getItem("role")
-                if not token or role != "admin":
-                    window.location.href = "../login.html"
-
             def setup_event_listeners(self):
-                logout_btn = document.getElementById("logout-btn")
-                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
+                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
+                document.getElementById("add-grade-btn").addEventListener("click", lambda e: self.open_add_modal())
+                document.getElementById("saveGradeBtn").addEventListener("click", lambda e: self.save_grade())
+                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_grade())
+                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search())
+
+            def load_grades(self):
+                html = ""
+                for grade in self.grades:
+                    grade_class = f"grade-{grade['grade'].lower()}"
+                    html += f"""<tr>
+                        <td>{grade['student']}</td>
+                        <td>{grade['course']}</td>
+                        <td><span class="grade-badge {grade_class}">{grade['grade']}</span></td>
+                        <td>{grade['percentage']}%</td>
+                        <td>{grade['date']}</td>
+                        <td>
+                            <button class="btn btn-sm btn-edit" onclick="GradeManagement_instance.edit({grade['id']})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-delete" onclick="GradeManagement_instance.open_delete({grade['id']})"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>"""
+                document.getElementById("grades-list").innerHTML = html or '<tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i><p>No grades</p></td></tr>'
+
+            def open_add_modal(self):
+                self.current_id = None
+                document.getElementById("gradeForm").reset()
+                from bootstrap import Modal
+                Modal(document.getElementById("gradeModal")).show()
+
+            def edit(self, gid):
+                grade = next((g for g in self.grades if g['id'] == gid), None)
+                if grade:
+                    self.current_id = gid
+                    document.getElementById("student").value = grade['student']
+                    document.getElementById("course").value = grade['course']
+                    document.getElementById("grade").value = grade['grade']
+                    document.getElementById("percentage").value = grade['percentage']
+                    from bootstrap import Modal
+                    Modal(document.getElementById("gradeModal")).show()
+
+            def save_grade(self):
+                student = document.getElementById("student").value
+                course = document.getElementById("course").value
+                grade = document.getElementById("grade").value
+                percentage = int(document.getElementById("percentage").value)
+                
+                if self.current_id:
+                    g = next((x for x in self.grades if x['id'] == self.current_id), None)
+                    if g:
+                        g.update({"student": student, "course": course, "grade": grade, "percentage": percentage})
+                else:
+                    new_id = max([x['id'] for x in self.grades]) + 1
+                    self.grades.append({"id": new_id, "student": student, "course": course, "grade": grade, "percentage": percentage, "date": "2024-03-15"})
+                
+                self.load_grades()
+                from bootstrap import Modal
+                Modal(document.getElementById("gradeModal")).hide()
+
+            def open_delete(self, gid):
+                self.current_id = gid
+                from bootstrap import Modal
+                Modal(document.getElementById("deleteConfirmModal")).show()
+
+            def delete_grade(self):
+                self.grades = [g for g in self.grades if g['id'] != self.current_id]
+                self.load_grades()
+                from bootstrap import Modal
+                Modal(document.getElementById("deleteConfirmModal")).hide()
+
+            def search(self):
+                term = document.getElementById("search-input").value.lower()
+                filtered = [g for g in self.grades if term in g['student'].lower() or term in g['course'].lower()]
+                html = ""
+                for grade in filtered:
+                    grade_class = f"grade-{grade['grade'].lower()}"
+                    html += f"""<tr>
+                        <td>{grade['student']}</td>
+                        <td>{grade['course']}</td>
+                        <td><span class="grade-badge {grade_class}">{grade['grade']}</span></td>
+                        <td>{grade['percentage']}%</td>
+                        <td>{grade['date']}</td>
+                        <td>
+                            <button class="btn btn-sm btn-edit" onclick="GradeManagement_instance.edit({grade['id']})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-delete" onclick="GradeManagement_instance.open_delete({grade['id']})"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>"""
+                document.getElementById("grades-list").innerHTML = html
 
             def handle_logout(self, event):
                 document.localStorage.removeItem("token")
                 document.localStorage.removeItem("role")
                 window.location.href = "../login.html"
 
-        GradeManagement()
+        GradeManagement_instance = GradeManagement()
     </py-script>
 </body>
 </html>

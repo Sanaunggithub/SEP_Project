@@ -16,8 +16,12 @@
 
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
         }
 
         * {
@@ -32,7 +36,7 @@
         }
 
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
             padding: 1rem 0;
         }
@@ -68,7 +72,7 @@
 
         .btn-logout:hover {
             background: white !important;
-            color: #667eea !important;
+            color: var(--primary) !important;
             transform: translateY(-2px);
         }
 
@@ -101,14 +105,14 @@
 
         .sidebar-menu a:hover {
             background: #f3f4f6;
-            color: #667eea;
-            border-left-color: #667eea;
+            color: var(--primary);
+            border-left-color: var(--primary);
         }
 
         .sidebar-menu a.active {
             background: #ede9fe;
-            color: #667eea;
-            border-left-color: #667eea;
+            color: var(--primary);
+            border-left-color: var(--primary);
         }
 
         .sidebar-menu i {
@@ -132,17 +136,129 @@
             color: #1f2937;
         }
 
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-card.primary { border-left-color: var(--primary); }
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.info { border-left-color: var(--info); }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .action-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .activity-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-text {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+
+        .btn-primary-custom {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary-custom:hover {
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+        }
+
         .dashboard-card {
             background: white;
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         }
     </style>
 </head>
@@ -199,12 +315,170 @@
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
                 <div class="page-header">
-                    <h1>Admin Dashboard</h1>
+                    <h1>Welcome to Admin Dashboard</h1>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>Welcome Admin</h3>
-                    <p>Dashboard content coming soon...</p>
+                <!-- Statistics Section -->
+                <div class="row">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="stat-card primary">
+                            <div class="stat-icon"><i class="bi bi-people"></i></div>
+                            <div class="stat-label">Total Students</div>
+                            <div class="stat-value" id="total-students">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="stat-card success">
+                            <div class="stat-icon"><i class="bi bi-book"></i></div>
+                            <div class="stat-label">Active Courses</div>
+                            <div class="stat-value" id="total-courses">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="stat-card warning">
+                            <div class="stat-icon"><i class="bi bi-clipboard"></i></div>
+                            <div class="stat-label">Pending Assignments</div>
+                            <div class="stat-value" id="pending-assignments">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="stat-card info">
+                            <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                            <div class="stat-label">Attendance Rate</div>
+                            <div class="stat-value" id="attendance-rate">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-title">Quick Actions</div>
+                <div class="row">
+                    <div class="col-md-6 col-lg-3">
+                        <a href="student.html" class="action-card">
+                            <i class="bi bi-person-plus action-icon"></i>
+                            <div class="action-label">Add Student</div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="course.html" class="action-card">
+                            <i class="bi bi-book-plus action-icon"></i>
+                            <div class="action-label">Add Course</div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="grade.html" class="action-card">
+                            <i class="bi bi-pencil-square action-icon"></i>
+                            <div class="action-label">Record Grades</div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="attendance.html" class="action-card">
+                            <i class="bi bi-check-circle action-icon"></i>
+                            <div class="action-label">Mark Attendance</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-title">Recent Activity</div>
+                <div id="activity-feed" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+                    <div class="activity-item">
+                        <div class="activity-text">
+                            <strong>New Student Added</strong><br>
+                            <small>David Wilson enrolled in Computer Science</small>
+                        </div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-text">
+                            <strong>Grade Recorded</strong><br>
+                            <small>Sarah Johnson received A in Python Basics</small>
+                        </div>
+                        <div class="activity-time">5 hours ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-text">
+                            <strong>Attendance Marked</strong><br>
+                            <small>Attendance for CS101 marked for 45 students</small>
+                        </div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-text">
+                            <strong>New Assignment Created</strong><br>
+                            <small>Data Structures Project added to CS201</small>
+                        </div>
+                        <div class="activity-time">2 days ago</div>
+                    </div>
+                </div>
+
+                <!-- System Overview -->
+                <div class="section-title">System Overview</div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 style="font-weight: 700; margin-bottom: 15px; color: #1f2937;">Management Status</h5>
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-weight: 600;">Student Records</span>
+                                    <span style="color: var(--primary); font-weight: 700;">90%</span>
+                                </div>
+                                <div style="background: #e5e7eb; border-radius: 8px; height: 6px; overflow: hidden;">
+                                    <div style="background: var(--primary); height: 100%; width: 90%;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-weight: 600;">Course Setup</span>
+                                    <span style="color: var(--success); font-weight: 700;">100%</span>
+                                </div>
+                                <div style="background: #e5e7eb; border-radius: 8px; height: 6px; overflow: hidden;">
+                                    <div style="background: var(--success); height: 100%; width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-weight: 600;">Attendance Records</span>
+                                    <span style="color: var(--warning); font-weight: 700;">65%</span>
+                                </div>
+                                <div style="background: #e5e7eb; border-radius: 8px; height: 6px; overflow: hidden;">
+                                    <div style="background: var(--warning); height: 100%; width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-weight: 600;">Grades Assigned</span>
+                                    <span style="color: var(--info); font-weight: 700;">75%</span>
+                                </div>
+                                <div style="background: #e5e7eb; border-radius: 8px; height: 6px; overflow: hidden;">
+                                    <div style="background: var(--info); height: 100%; width: 75%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 style="font-weight: 700; margin-bottom: 15px; color: #1f2937;">Quick Stats</h5>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px 0; color: #6b7280;">Average GPA</td>
+                                    <td style="padding: 12px 0; text-align: right; font-weight: 700; color: var(--primary);" id="avg-gpa">3.54</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px 0; color: #6b7280;">Total Assignments</td>
+                                    <td style="padding: 12px 0; text-align: right; font-weight: 700; color: var(--primary);" id="total-assignments">3</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 12px 0; color: #6b7280;">Submitted</td>
+                                    <td style="padding: 12px 0; text-align: right; font-weight: 700; color: var(--success);" id="submitted">2</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 0; color: #6b7280;">Last Updated</td>
+                                    <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #6b7280;" id="last-updated">Today</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,6 +490,8 @@
         class AdminDashboard:
             def __init__(self):
                 self.check_auth()
+                self.setup_data()
+                self.calculate_metrics()
                 self.setup_event_listeners()
                 print("✓ Admin Dashboard initialized")
 
@@ -226,6 +502,87 @@
                 
                 if not token or role != "admin":
                     window.location.href = "../login.html"
+
+            def setup_data(self):
+                """Setup sample data"""
+                # Sample student data
+                self.students = [
+                    {"id": 1, "name": "John Smith", "email": "john@student.edu", "department": "Computer Science"},
+                    {"id": 2, "name": "Sarah Johnson", "email": "sarah@student.edu", "department": "Computer Science"},
+                    {"id": 3, "name": "Michael Brown", "email": "michael@student.edu", "department": "Engineering"},
+                    {"id": 4, "name": "Emily Davis", "email": "emily@student.edu", "department": "Computer Science"},
+                    {"id": 5, "name": "David Wilson", "email": "david@student.edu", "department": "Business"},
+                ]
+
+                # Sample course data
+                self.courses = [
+                    {"id": 1, "code": "CS101", "name": "Python Basics", "instructor": "Dr. Smith"},
+                    {"id": 2, "code": "CS201", "name": "Data Structures", "instructor": "Dr. Johnson"},
+                    {"id": 3, "code": "ENG101", "name": "Engineering Physics", "instructor": "Prof. Williams"},
+                    {"id": 4, "code": "BUS101", "name": "Business Fundamentals", "instructor": "Prof. Brown"},
+                ]
+
+                # Sample grade data
+                self.grades = [
+                    {"id": 1, "student_id": 1, "course_id": 1, "grade": "A", "percentage": 92},
+                    {"id": 2, "student_id": 2, "course_id": 1, "grade": "A", "percentage": 95},
+                    {"id": 3, "student_id": 1, "course_id": 2, "grade": "B", "percentage": 85},
+                ]
+
+                # Sample assignment data
+                self.assignments = [
+                    {"id": 1, "title": "Python Basics", "status": "Graded"},
+                    {"id": 2, "title": "List Operations", "status": "Submitted"},
+                    {"id": 3, "title": "Data Structures Project", "status": "Pending"},
+                ]
+
+                # Sample attendance data
+                self.attendance = [
+                    {"id": 1, "status": "Present"},
+                    {"id": 2, "status": "Present"},
+                    {"id": 3, "status": "Absent"},
+                    {"id": 4, "status": "Late"},
+                    {"id": 5, "status": "Present"},
+                ]
+
+            def calculate_metrics(self):
+                """Calculate and display dashboard metrics"""
+                # Total Students
+                total_students = len(self.students)
+                document.getElementById("total-students").textContent = str(total_students)
+
+                # Total Courses
+                total_courses = len(self.courses)
+                document.getElementById("total-courses").textContent = str(total_courses)
+
+                # Pending Assignments
+                pending = sum(1 for a in self.assignments if a["status"] == "Pending")
+                document.getElementById("pending-assignments").textContent = str(pending)
+
+                # Attendance Rate
+                if self.attendance:
+                    present_count = sum(1 for a in self.attendance if a["status"] == "Present")
+                    attendance_rate = (present_count / len(self.attendance)) * 100
+                else:
+                    attendance_rate = 0
+                document.getElementById("attendance-rate").textContent = f"{attendance_rate:.0f}%"
+
+                # Average GPA
+                if self.grades:
+                    grade_values = {"A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0}
+                    total_gpa = sum(grade_values.get(g["grade"], 0) for g in self.grades)
+                    avg_gpa = total_gpa / len(self.grades)
+                else:
+                    avg_gpa = 0
+                document.getElementById("avg-gpa").textContent = f"{avg_gpa:.2f}"
+
+                # Total Assignments
+                total_assignments = len(self.assignments)
+                document.getElementById("total-assignments").textContent = str(total_assignments)
+
+                # Submitted Assignments
+                submitted = sum(1 for a in self.assignments if a["status"] != "Pending")
+                document.getElementById("submitted").textContent = str(submitted)
 
             def setup_event_listeners(self):
                 """Setup event listeners"""

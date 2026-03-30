@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Replace old student dashboard and create new student pages",
+			"type": "shell",
+			"command": "cd /Users/phonemyatpyaesone/Desktop/SEP_Project/student-management-system/frontend/pages/student && mv dashboard-new.html dashboard.html"
+		}
+	]
+}

@@ -4,6 +4,5 @@ from .course import Course
 from .grade import Grade
 from .attendance import Attendance
 from .assignment import Assignment
-from .notification import Notification
 from .analytics import ReportSnapshot  
 from .auth import User            

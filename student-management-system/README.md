@@ -6,8 +6,8 @@ A comprehensive role-based student management system with separate admin and stu
 ## Features
 
 ### Admin Features
-   - **Student Management**: Add, edit, and manage student records
-   - **Course Management**: Create and manage courses
+- **Student Management**: Add, edit, and manage student records
+- **Course Management**: Create and manage courses
 - **Grade Management**: Track and update student grades
 - **Attendance Tracking**: Monitor student attendance records
 - **Assignment Management**: Create and track assignments
@@ -46,15 +46,13 @@ student-management-system
 │   │   │   ├── grade.html
 │   │   │   ├── attendance.html
 │   │   │   ├── assignment.html
-│   │   │   ├── notification.html
 │   │   │   └── analytics.html
 │   │   └── student/           # Student pages
 │   │       ├── dashboard.html
 │   │       ├── my-courses.html
 │   │       ├── my-grades.html
 │   │       ├── my-attendance.html
-│   │       ├── my-assignments.html
-│   │       └── notifications.html
+│   │       └── my-assignments.html
 │   ├── index.html             # Admin landing page
 │   ├── style.css
 │   ├── components/
@@ -66,10 +64,15 @@ student-management-system
 ```
 
 ## Tech Stack
-- **Frontend**: PyScript 2024.1.1, Bootstrap 5.3.0, Bootstrap Icons 1.11.0
+- **Frontend**: 
+  - PyScript 2024.1.1 (Python execution in browser)
+  - Bootstrap 5.3.0 (Responsive UI framework)
+  - Bootstrap Icons 1.11.0 (Icon library)
+  - Chart.js 3.9.1 (Data visualization)
 - **Backend**: FastAPI, Python
-- **Database**: (To be configured)
+- **Database**: SQLAlchemy ORM (configured, pending migration)
 - **Authentication**: Token-based with localStorage
+- **Version Control**: Git
 
 ## Installation
 
@@ -89,52 +92,134 @@ student-management-system
    pip install -r requirements.txt
    ```
 
-3. Set up backend (optional - not yet fully implemented):
+3. Set up backend (optional - for API integration):
    ```bash
    cd backend
-   # Configure database settings
-   # Run migrations if applicable
+   pip install -r ../requirements.txt
+   uvicorn main:app --reload --port 8000
    ```
+   The backend API will be available at `http://localhost:8000`
 
 ## Usage
 
 ### Starting the Application
+
+#### For Admin Users:
+1. Open `frontend/index.html` in a web browser
+2. Log in with admin credentials
+3. Access the admin dashboard with links to:
+   - Student Management
+   - Course Management
+   - Grade Tracking
+   - Attendance Records
+   - Assignment Management
+   - Analytics Dashboard
+
+#### For Student Users:
 1. Open `frontend/pages/login.html` in a web browser
-2. Log in with admin or student credentials
-3. You'll be redirected to the appropriate dashboard based on your role
+2. Log in with student credentials
+3. Access your student dashboard with links to:
+   - My Courses (with progress tracking)
+   - My Grades (with GPA calculation)
+   - My Attendance (with attendance rate)
+   - My Assignments (with status tracking)
 
-### Admin Workflow
-- Log in as admin → Admin Dashboard → Manage students/courses/grades/etc.
+### Default Test Credentials
 
-### Student Workflow
-- Log in as student → Student Dashboard → View courses, grades, attendance, assignments
+**Admin User:**
+- Email: admin@example.com
+- Password: admin123
 
-## Color Scheme
-- **Primary Gradient**: Purple (#667eea) to Blue (#764ba2)
-- **Status Badges**: 
-  - Green: Completed/Present
-  - Yellow: Pending
-  - Red: Failed/Absent
-  - Blue: In Progress
+**Student User:**
+- Email: student@example.com
+- Password: student123
+
+### Admin Navigation Flow
+Admin Dashboard → Student/Course/Grade/Attendance/Assignment Management → Analytics Dashboard
+
+## Design & Architecture
+
+### UI Framework
+- **Responsive Layout**: Two-column design with sticky sidebar navigation
+- **Color Scheme**: 
+  - Primary Gradient: Purple (#667eea) to Violet (#764ba2)
+  - Success: Green (#10b981) - for present/completed
+  - Warning: Yellow (#f59e0b) - for pending
+  - Danger: Red (#ef4444) - for failed/absent
+- **Typography**: Segoe UI with semantic font scaling
+- **Components**: Bootstrap grid system for responsive design
+
+### Frontend Architecture
+- **CSS Variables**: `:root` variables for consistent theming across pages
+- **PyScript Classes**: Object-oriented page logic with methods for auth, data setup, rendering, and event handling
+- **Sample Data**: JavaScript arrays for testing without backend connection
+- **Event Listeners**: Dynamic interactivity for search, filters, and navigation
+
+### Authentication Flow
+1. User visits login.html
+2. Frontend checks localStorage for token
+3. On login, token and role stored in localStorage
+4. Role-based redirect to appropriate dashboard
+5. All pages verify token and role before rendering
+6. Logout clears localStorage and redirects to login
 
 ## Current Status
-- ✅ Frontend: Admin and Student dashboards with full UI
-- ✅ Role-based routing and authentication
-- ⏳ Backend: API endpoints (in development)
-- ⏳ Database: Configuration (pending)
+- ✅ **Frontend - Admin Pages**: Complete with full CRUD interfaces
+  - Dashboard with quick stats and actions
+  - Student Management
+  - Course Management
+  - Grade Management
+  - Attendance Tracking
+  - Assignment Management
+  - Analytics Dashboard with Chart.js visualizations
+- ✅ **Frontend - Student Pages**: Complete with read-only interfaces
+  - Student Dashboard with statistics
+  - My Courses with search and progress tracking
+  - My Grades with GPA calculation
+  - My Attendance with attendance statistics
+  - My Assignments with status tracking
+- ✅ **Role-Based Authentication**: Login system with localStorage tokens
+- ✅ **Responsive Design**: Bootstrap 5 mobile-friendly layouts
+- ⏳ **Backend**: FastAPI endpoints (in development)
+- ⏳ **Database**: SQLAlchemy models configured (migrations pending)
+- ⏳ **API Integration**: Frontend-backend connection (pending)
 
 ## Future Enhancements
-- Backend API integration
-- Database implementation
-- Email notifications
-- Advanced analytics and reporting
-- File upload for documents
+- Backend API integration with all frontend pages
+- Database implementation with migration scripts
+- Advanced analytics and reporting features
+- File upload functionality for documents and avatars
+- Email notifications for assignment deadlines
+- Student search and filtering in admin panel
+- Grade statistics and performance insights per course
+- Real-time attendance tracking via QR code
+
+## Troubleshooting
+
+### Issue: Pages not loading or showing blank
+- **Solution**: Ensure you have JavaScript enabled and allow PyScript to load from CDN
+- **Check**: Browser console for errors (F12 → Console tab)
+
+### Issue: Authentication redirects to login repeatedly
+- **Solution**: Clear browser localStorage (F12 → Application → Local Storage → Clear)
+- **Ensure**: Using correct test credentials or logging in first
+
+### Issue: Charts not showing in Analytics Dashboard
+- **Solution**: Ensure Chart.js CDN is accessible and browser allows external scripts
+- **Refresh**: Hard refresh the page (Ctrl+Shift+R or Cmd+Shift+R)
+
+### Issue: Sidebar not displaying correctly on mobile
+- **Solution**: Use responsive design breakpoint - sidebar collapses on screens < 768px
+- **Test**: Use browser developer tools to test mobile view
+
+## Contributing
+1. Create a new branch for your feature
+2. Make your changes
+3. Test thoroughly on different screen sizes
+4. Submit a pull request with clear description
+
+## Project Authors
+Student Management System Development Team
 
 ## License
 MIT License
-2. Use the navigation to access different features of the Student Management System.
-
-
-
-## License
-This project is licensed under the MIT License.

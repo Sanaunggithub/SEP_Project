@@ -5,7 +5,7 @@ from datetime import datetime, date
 from database import get_db
 from models.auth import User
 from models.attendance import Attendance
-from models.schemas import AttendanceSchema, AttendanceCreate
+from schemas.attendance import AttendanceResponse, AttendanceCreate, AttendanceBulkCreate
 from core.security import get_current_user
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
@@ -17,7 +17,7 @@ def check_role(required_roles: list):
         return current_user
     return role_checker
 
-@router.post("/", response_model=AttendanceSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=AttendanceResponse, status_code=status.HTTP_201_CREATED)
 def mark_attendance(
     attendance: AttendanceCreate,
     db: Session = Depends(get_db),
@@ -79,7 +79,7 @@ def get_student_attendance(
     attendance = query.offset(skip).limit(limit).all()
     return attendance
 
-@router.put("/{attendance_id}", response_model=AttendanceSchema)
+@router.put("/{attendance_id}", response_model=AttendanceResponse)
 def correct_attendance(
     attendance_id: str,
     status_update: str = Query(...),
@@ -115,11 +115,20 @@ def get_at_risk_students(
 
 @router.post("/bulk", status_code=status.HTTP_201_CREATED)
 def bulk_mark_attendance(
-    records: list[AttendanceCreate],
+    bulk: AttendanceBulkCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["instructor", "admin"]))
 ):
-    attendance_records = [Attendance(**record.dict(), marked_by=current_user.id) for record in records]
+    attendance_records = []
+    for record in bulk.records:
+        attendance_records.append(Attendance(
+            student_id=record["student_id"],
+            course_id=bulk.course_id,
+            date=bulk.date,
+            status=record["status"],
+            marked_by=current_user.id
+        ))
+    
     db.add_all(attendance_records)
     db.commit()
     return {"message": f"{len(attendance_records)} attendance records marked"}

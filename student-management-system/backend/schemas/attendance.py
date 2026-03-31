@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, date
 from typing import Optional, List
 from enum import Enum
@@ -17,7 +17,7 @@ class AttendanceBase(BaseModel):
 
 class AttendanceCreate(AttendanceBase):
     check_in_time: Optional[datetime] = None
-    marked_by: str
+
 
 class AttendanceBulkCreate(BaseModel):
     course_id: str

@@ -41,17 +41,6 @@ class SubmissionStatusEnum(str, Enum):
     graded = "graded"
     rejected = "rejected"
 
-class ChannelEnum(str, Enum):
-    email = "email"
-    sms = "sms"
-    in_app = "in_app"
-
-class NotificationTypeEnum(str, Enum):
-    announcement = "announcement"
-    grade = "grade"
-    attendance = "attendance"
-    deadline = "deadline"
-    general = "general"
 
 class ReportTypeEnum(str, Enum):
     enrollment = "enrollment"
@@ -246,26 +235,6 @@ class SubmissionSchema(BaseSchema):
     feedback: Optional[str] = None
     status: SubmissionStatusEnum
 
-# ==================== Notification Schemas ====================
-class NotificationCreate(BaseModel):
-    recipient_id: str
-    sender_id: Optional[str] = None
-    title: str
-    message: str
-    channel: ChannelEnum
-    notification_type: NotificationTypeEnum
-    course_id: Optional[str] = None
-
-class NotificationSchema(BaseSchema):
-    recipient_id: str
-    sender_id: Optional[str] = None
-    title: str
-    message: str
-    channel: ChannelEnum
-    notification_type: NotificationTypeEnum
-    is_read: bool
-    sent_at: datetime
-    course_id: Optional[str] = None
 
 # ==================== Analytics Schemas ====================
 class ReportSnapshotCreate(BaseModel):

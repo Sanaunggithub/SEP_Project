@@ -37,13 +37,9 @@ class User(BaseModel):
 
     # Relationships
     taught_courses = relationship("Course", back_populates="instructor")
-    enrollments = relationship("CourseEnrollment", back_populates="student")
-    attendances = relationship("Attendance", back_populates="student", foreign_keys="Attendance.student_id")
     grades = relationship("Grade", back_populates="student")
     gpas = relationship("GPA", back_populates="student")
     submissions = relationship("Submission", back_populates="student")
-    sent_notifications = relationship("Notification", back_populates="sender", foreign_keys="Notification.sender_id")
-    received_notifications = relationship("Notification", back_populates="recipient",  foreign_keys="Notification.recipient_id")
     marked_attendances = relationship("Attendance", back_populates="marker", foreign_keys="Attendance.marked_by")
     generated_reports = relationship("ReportSnapshot", back_populates="generator")
 

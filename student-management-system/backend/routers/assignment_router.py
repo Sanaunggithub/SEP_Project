@@ -4,19 +4,25 @@ from datetime import datetime
 from database import get_db
 from models.auth import User
 from models.assignment import Assignment, Submission
-from models.schemas import AssignmentSchema, AssignmentCreate, AssignmentUpdate, SubmissionSchema, SubmissionCreate, SubmissionUpdate
+from schemas.assignment import AssignmentCreate, AssignmentUpdate, AssignmentResponse, SubmissionCreate, SubmissionUpdate, SubmissionResponse
 from core.security import get_current_user
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
-def check_role(required_roles: list):
-    def role_checker(current_user: User = Depends(get_current_user)):
-        if current_user.role.value not in required_roles:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
-        return current_user
-    return role_checker
+class RoleChecker:
+    def __init__(self, required_roles: list):
+        self.required_roles = required_roles
 
-@router.get("/", response_model=list[AssignmentSchema])
+    def __call__(self, current_user: User = Depends(get_current_user)):
+        role_val = current_user.role.value if hasattr(current_user.role, 'value') else current_user.role
+        if role_val not in self.required_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Your role: {role_val}"
+            )
+        return current_user
+
+@router.get("/", response_model=list[AssignmentResponse])
 def list_assignments(
     course_id: str | None = Query(None),
     skip: int = Query(0, ge=0),
@@ -26,15 +32,13 @@ def list_assignments(
     query = db.query(Assignment)
     if course_id:
         query = query.filter(Assignment.course_id == course_id)
-    
-    assignments = query.offset(skip).limit(limit).all()
-    return assignments
+    return query.offset(skip).limit(limit).all()
 
-@router.post("/", response_model=AssignmentSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
 def create_assignment(
     assignment: AssignmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["instructor", "admin"]))
+    current_user: User = Depends(RoleChecker(["instructor", "admin"]))
 ):
     db_assignment = Assignment(**assignment.dict())
     db.add(db_assignment)
@@ -42,19 +46,18 @@ def create_assignment(
     db.refresh(db_assignment)
     return db_assignment
 
-@router.put("/{assignment_id}", response_model=AssignmentSchema)
+@router.put("/{assignment_id}", response_model=AssignmentResponse)
 def update_assignment(
     assignment_id: str,
     assignment_update: AssignmentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["instructor", "admin"]))
+    current_user: User = Depends(RoleChecker(["instructor", "admin"]))
 ):
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
     
-    update_data = assignment_update.dict(exclude_unset=True)
-    for field, value in update_data.items():
+    for field, value in assignment_update.dict(exclude_unset=True).items():
         setattr(assignment, field, value)
     
     db.add(assignment)
@@ -66,7 +69,7 @@ def update_assignment(
 def delete_assignment(
     assignment_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["admin"]))
+    current_user: User = Depends(RoleChecker(["admin"]))
 ):
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
@@ -75,29 +78,29 @@ def delete_assignment(
     db.delete(assignment)
     db.commit()
 
-@router.post("/{assignment_id}/submit", response_model=SubmissionSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/{assignment_id}/submit", response_model=SubmissionResponse, status_code=status.HTTP_201_CREATED)
 def submit_assignment(
     assignment_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["student"]))
+    current_user: User = Depends(RoleChecker(["student"]))
 ):
     import os
     from core.config import UPLOAD_DIR
-    
+
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
-    
+
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
-    
+
     file_path = f"{UPLOAD_DIR}/{assignment_id}_{current_user.id}_{file.filename}"
     with open(file_path, "wb") as f:
         f.write(file.file.read())
-    
+
     is_late = datetime.now() > assignment.due_date if assignment.due_date else False
-    
+
     submission = Submission(
         student_id=current_user.id,
         assignment_id=assignment_id,
@@ -115,28 +118,26 @@ def get_assignment_submissions(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["instructor", "admin"]))
+    current_user: User = Depends(RoleChecker(["instructor", "admin"]))
 ):
-    submissions = db.query(Submission).filter(
+    return db.query(Submission).filter(
         Submission.assignment_id == assignment_id
     ).offset(skip).limit(limit).all()
-    return submissions
 
-@router.put("/submissions/{submission_id}/grade", response_model=SubmissionSchema)
+@router.put("/submissions/{submission_id}/grade", response_model=SubmissionResponse)
 def grade_submission(
     submission_id: str,
     grade_update: SubmissionUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["instructor", "admin"]))
+    current_user: User = Depends(RoleChecker(["instructor", "admin"]))
 ):
     submission = db.query(Submission).filter(Submission.id == submission_id).first()
     if not submission:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found")
-    
-    update_data = grade_update.dict(exclude_unset=True)
-    for field, value in update_data.items():
+
+    for field, value in grade_update.dict(exclude_unset=True).items():
         setattr(submission, field, value)
-    
+
     db.add(submission)
     db.commit()
     db.refresh(submission)
@@ -151,8 +152,9 @@ def get_student_submission(
     submission = db.query(Submission).filter(Submission.id == submission_id).first()
     if not submission:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found")
-    
-    if current_user.role.value not in ["admin", "instructor"] and str(current_user.id) != str(submission.student_id):
+
+    role_val = current_user.role.value if hasattr(current_user.role, 'value') else current_user.role
+    if role_val not in ["admin", "instructor"] and str(current_user.id) != str(submission.student_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
+
     return submission

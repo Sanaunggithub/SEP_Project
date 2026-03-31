@@ -17,7 +17,6 @@ from models.course import Course, CourseEnrollment
 from models.grade import Grade
 from models.attendance import Attendance
 from models.assignment import Assignment, Submission
-from models.notification import Notification
 from models.analytics import ReportSnapshot
 
 config = context.config

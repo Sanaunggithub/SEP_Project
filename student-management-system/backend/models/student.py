@@ -29,6 +29,8 @@ class Student(BaseModel):
 
     # Relationships
     user = relationship("User", uselist=False)
+    enrollments = relationship("CourseEnrollment", back_populates="student")
+    attendances = relationship("Attendance", back_populates="student")
 
     __table_args__ = (
         Index('idx_student_user', 'user_id'),

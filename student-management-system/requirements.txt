@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-sqlalchemy
+sqlalchemy==2.0.23
 pydantic
 passlib[bcrypt]
 email-validator
@@ -8,5 +8,5 @@ bcrypt==4.0.1
 python-jose[cryptography]
 python_multipart
 pydantic-settings
-pymysql
-alembic
+pymysql==1.0.3
+alembic==1.13.0

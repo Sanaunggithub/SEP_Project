@@ -1,0 +1,255 @@
+POST /auth/register (create admin)
+{
+  "full_name": "San Aung",
+  "email": "san@gmail.com",
+  "role": "admin",
+  "phone_number": "0811111111",
+  "date_of_birth": "1990-01-01",
+  "gender": "male",
+  "address": "Bangkok",
+  "emergency_contact_name": "Emergency Admin",
+  "emergency_contact_phone": "0811111112",
+  "password": "123456"
+}
+
+POST /auth/register (create instructor)
+{
+  "full_name": "Dr. Smith",
+  "email": "smith@gmail.com",
+  "role": "instructor",
+  "phone_number": "0822222222",
+  "date_of_birth": "1985-06-15",
+  "gender": "male",
+  "address": "Chiang Mai",
+  "emergency_contact_name": "Emergency Smith",
+  "emergency_contact_phone": "0822222223",
+  "password": "smith1234"
+}
+
+POST /auth/register (create student)
+{
+  "full_name": "John Doe",
+  "email": "john@gmail.com",
+  "role": "student",
+  "phone_number": "0833333333",
+  "date_of_birth": "2000-03-20",
+  "gender": "male",
+  "address": "Phuket",
+  "emergency_contact_name": "Emergency John",
+  "emergency_contact_phone": "0833333334",
+  "password": "john1234"
+}
+
+{
+  "full_name": "Cher ",
+  "email": "cher@gmail.com",
+  "role": "student",
+  "phone_number": "0833333333",
+  "date_of_birth": "2000-03-20",
+  "gender": "female",
+  "address": "Phuket",
+  "emergency_contact_name": "Emergency John",
+  "emergency_contact_phone": "0833333334",
+  "password": "cher1234"
+}
+```
+
+**POST /auth/login** — login as admin first
+```
+username: admin@gmail.com
+password: admin1234
+
+
+GET /auth/me — verify current user (Must be authorized)
+PUT /auth/me
+{
+  "full_name": "Admin Updated",
+  "phone_number": "0811111199",
+  "address": "Bangkok Updated"
+}
+
+2. STUDENTS
+(get UUIDs from MySQL first: SELECT id, email FROM users;)
+POST /students
+
+{
+  "user_id": "b95d2cf4-72b5-4ae3-b6ad-5d28f7f103b6",
+  "student_id_number": "STD001",
+  "enrollment_date": "2023-08-01",
+  "program": "Engineering",
+  "department": "Biomedical Engineering",
+  "year_level": 2,
+  "academic_status": "active",
+  "guardian_name": "Alex",
+  "guardian_phone": "0844444444",
+  "guardian_email": "smith@gmail.com",
+  "scholarship_status": true,
+  "full_name": "John"
+}
+
+GET /students — list all (admin only)
+GET /students/{student_uuid} — get by ID
+PUT /students/{student_uuid}
+
+{
+  "year_level": 3,
+  "scholarship_status": true,
+  "notes": "Good student"
+}
+GET /students/{student_uuid}/grades
+GET /students/{student_uuid}/attendance
+
+3. COURSES
+(login as admin or instructor)
+POST /courses
+{
+  "course_code": "CS101",
+  "title": "Introduction to Programming",
+  "description": "Basic programming concepts",
+  "credit_hours": 3,
+  "max_seats": 30,
+  "schedule_days": ["Monday", "Wednesday"],
+  "start_time": "09:00:00",
+  "end_time": "10:30:00",
+  "semester": "1",
+  "year": 2024,
+  "room_location": "Room A101",
+  "instructor_id": "7d28280e-6c1e-4668-8b33-b34719ab5df1",
+  "prerequisite_ids": []
+}
+
+GET /courses — list all
+GET /courses/{course_uuid} — get by ID
+PUT /courses/{course_uuid}
+
+{
+  "title": "Intro to Programming Updated",
+  "max_seats": 35,
+  "room_location": "Room B202"
+}
+
+POST /courses/{course_uuid}/enroll
+{
+  "student_id": "student-uuid-here",
+  "course_id": "course-uuid-here"
+}
+
+GET /courses/{course_uuid}/students — list enrolled students
+
+4. GRADES
+(login as instructor)
+POST /grades
+
+{
+  "student_id": "student-uuid-here",
+  "course_id": "course-uuid-here",
+  "component_type": "assignment",
+  "score": 85.0,
+  "max_score": 100.0,
+  "weight": 0.3,
+  "remarks": "Good work"
+}
+
+GET /grades/gpa/{student_uuid}
+GET /grades/report/{course_uuid}
+
+5. ATTENDANCE
+(login as instructor)
+POST /attendance
+
+{
+  "student_id": "29e86abd-ae0c-477b-93b2-59ef027520f4",
+  "course_id": "b3327a96-3cb2-4065-bccc-b326454b6ed4",
+  "date": "2024-03-29",
+  "status": "present",
+  "check_in_time": "2024-03-29T09:05:00"
+}
+
+POST /attendance/bulk
+{
+  "course_id": "b3327a96-3cb2-4065-bccc-b326454b6ed4",
+  "date": "2024-03-30",
+  "records": [
+    {"student_id": "29e86abd-ae0c-477b-93b2-59ef027520f4", "status": "present"}
+  ]
+}
+
+GET /attendance/{course_uuid}
+GET /attendance/student/{student_uuid}
+GET /attendance/at-risk
+
+6. ASSIGNMENTS
+(login as instructor)
+POST /assignments
+
+{
+  "course_id": "8bde3b93-812a-4e99-aa3f-1d473a388454",
+  "title": "Assignment 1",
+  "description": "Write a hello world program",
+  "due_date": "2024-04-15T23:59:00",
+  "max_score": 100.0,
+  "allow_late_submission": true,
+  "late_penalty_percent": 10.0,
+  "file_types_allowed": ["pdf", "py", "zip"]
+}
+
+GET /assignments
+PUT /assignments/{assignment_uuid}
+
+{
+  "title": "Assignment 1 Updated",
+  "due_date": "2024-04-20T23:59:00"
+}
+
+POST /assignments/{assignment_uuid}/submit (login as student)
+{
+  "student_id": "student-uuid-here",
+  "assignment_id": "assignment-uuid-here",
+  "file_url": "uploads/STD001_assignment1.pdf"
+}
+
+GET /assignments/{assignment_uuid}/submissions (login as instructor)
+PUT /assignments/submissions/{submission_uuid}/grade
+
+{
+  "score": 88.0,
+  "feedback": "Well done but improve comments",
+  "status": "graded"
+}
+
+7. ANALYTICS
+(login as admin)
+GET /analytics/enrollment-trends
+GET /analytics/attendance-patterns
+GET /analytics/grade-distribution
+GET /analytics/student-performance/{student_uuid}
+POST /analytics/generate-report
+
+{
+  "report_type": "enrollment",
+  "generated_by": "admin-uuid-here",
+  "parameters": {
+    "semester": "1",
+    "year": 2024
+  },
+  "export_format": "pdf"
+}
+```
+
+**GET /analytics/reports**
+
+---
+
+## Testing Order Summary
+```
+1. Register admin, instructor, student
+2. Login as admin → copy token → Authorize
+3. Create student profile
+4. Create course
+5. Enroll student in course
+6. Post grades
+7. Mark attendance
+8. Create assignment
+9. Login as student → submit assignment
+10. Login as instructor → grade submission
+11. Login as admin → check analytics

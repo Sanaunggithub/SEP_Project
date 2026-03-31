@@ -47,7 +47,7 @@ class StudentResponse(StudentBase):
     created_at: datetime
     updated_at: datetime
     is_active: bool
-
+    full_name:Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class StudentDetailResponse(StudentResponse):

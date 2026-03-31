@@ -25,8 +25,14 @@ def list_students(
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["admin"]))
 ):
-    students = db.query(Student).offset(skip).limit(limit).all()
-    return students
+    students = db.query(Student).filter(Student.is_active == True).offset(skip).limit(limit).all()
+    result = []
+    for student in students:
+        student_data = StudentResponse.model_validate(student)
+        student_data.full_name = student.user.full_name if student.user else None
+        result.append(student_data)
+    
+    return result
 
 @router.get("/{student_id}", response_model=StudentResponse)
 def get_student(
@@ -41,7 +47,9 @@ def get_student(
     if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
     
-    return student
+    student_data = StudentResponse.model_validate(student)
+    student_data.full_name = student.user.full_name if student.user else None
+    return student_data
 
 @router.post("/", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(
@@ -57,7 +65,10 @@ def create_student(
     db.add(db_student)
     db.commit()
     db.refresh(db_student)
-    return db_student
+    
+    student_data = StudentResponse.model_validate(db_student)
+    student_data.full_name = db_student.user.full_name if db_student.user else None
+    return student_data
 
 @router.put("/{student_id}", response_model=StudentResponse)
 def update_student(
@@ -77,7 +88,10 @@ def update_student(
     db.add(student)
     db.commit()
     db.refresh(student)
-    return student
+    
+    student_data = StudentResponse.model_validate(student)
+    student_data.full_name = student.user.full_name if student.user else None
+    return student_data
 
 @router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(

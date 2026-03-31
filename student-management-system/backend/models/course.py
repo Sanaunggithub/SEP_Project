@@ -33,7 +33,6 @@ class Course(BaseModel):
     grades = relationship("Grade", back_populates="course", cascade="all, delete-orphan")
     attendances = relationship("Attendance", back_populates="course", cascade="all, delete-orphan")
     assignments = relationship("Assignment", back_populates="course", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="course")
 
     __table_args__ = (
         Index('idx_course_instructor', 'instructor_id'),
@@ -43,13 +42,13 @@ class Course(BaseModel):
 class CourseEnrollment(BaseModel):
     __tablename__ = "course_enrollments"
     
-    student_id = Column(ForeignKey('users.id'), nullable=False, index=True)
+    student_id = Column(ForeignKey('students.id'), nullable=False, index=True)
     course_id = Column(ForeignKey('courses.id'), nullable=False, index=True)
     enrolled_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     status = Column(Enum(CourseStatus), default=CourseStatus.active, nullable=False)
 
     # Relationships
-    student = relationship("User", back_populates="enrollments")
+    student = relationship("Student", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
 
     __table_args__ = (

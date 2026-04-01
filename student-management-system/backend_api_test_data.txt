@@ -74,7 +74,7 @@ POST /students
 
 {
   "user_id": "b95d2cf4-72b5-4ae3-b6ad-5d28f7f103b6",
-  "student_id_number": "STD001",
+  "student_id_number": "STD004",
   "enrollment_date": "2023-08-01",
   "program": "Engineering",
   "department": "Biomedical Engineering",
@@ -84,7 +84,7 @@ POST /students
   "guardian_phone": "0844444444",
   "guardian_email": "smith@gmail.com",
   "scholarship_status": true,
-  "full_name": "John"
+  "full_name": "Alex"
 }
 
 GET /students — list all (admin only)
@@ -103,13 +103,13 @@ GET /students/{student_uuid}/attendance
 (login as admin or instructor)
 POST /courses
 {
-  "course_code": "CS101",
-  "title": "Introduction to Programming",
-  "description": "Basic programming concepts",
+  "course_code": "I301",
+  "title": "Introduction to Calculus",
+  "description": "Basic Calculus concepts",
   "credit_hours": 3,
   "max_seats": 30,
   "schedule_days": ["Monday", "Wednesday"],
-  "start_time": "09:00:00",
+  "start_time": "08:00:00",
   "end_time": "10:30:00",
   "semester": "1",
   "year": 2024,
@@ -130,8 +130,8 @@ PUT /courses/{course_uuid}
 
 POST /courses/{course_uuid}/enroll
 {
-  "student_id": "student-uuid-here",
-  "course_id": "course-uuid-here"
+  "student_id": "29e86abd-ae0c-477b-93b2-59ef027520f4",
+  "course_id": "b3327a96-3cb2-4065-bccc-b326454b6ed4"
 }
 
 GET /courses/{course_uuid}/students — list enrolled students
@@ -183,7 +183,7 @@ GET /attendance/at-risk
 POST /assignments
 
 {
-  "course_id": "8bde3b93-812a-4e99-aa3f-1d473a388454",
+  "course_id": "b3327a96-3cb2-4065-bccc-b326454b6ed4",
   "title": "Assignment 1",
   "description": "Write a hello world program",
   "due_date": "2024-04-15T23:59:00",
@@ -203,13 +203,13 @@ PUT /assignments/{assignment_uuid}
 
 POST /assignments/{assignment_uuid}/submit (login as student)
 {
-  "student_id": "student-uuid-here",
-  "assignment_id": "assignment-uuid-here",
+  "student_id": "29e86abd-ae0c-477b-93b2-59ef027520f4",
+  "assignment_id": "cc5c2ec7-8a84-4478-aa0a-530ad1966c50",
   "file_url": "uploads/STD001_assignment1.pdf"
 }
 
 GET /assignments/{assignment_uuid}/submissions (login as instructor)
-PUT /assignments/submissions/{submission_uuid}/grade
+PUT /assignments/submissions/{8706c361-3295-49d2-935a-8d7ee13e2107}/grade
 
 {
   "score": 88.0,
@@ -236,9 +236,22 @@ POST /analytics/generate-report
 }
 ```
 
-**GET /analytics/reports**
+**GET /analytics/reports** 25bbb166-5931-46ab-bc72-6eea754d5b33
 
----
+8.Grade
+post/grades
+{
+  "student_id": "29e86abd-ae0c-477b-93b2-59ef027520f4",
+  "course_id": "b3327a96-3cb2-4065-bccc-b326454b6ed4",
+  "component_type": "assignment",
+  "score": 80,
+  "max_score": 100,
+  "weight": 10,
+  "remarks": "excellent"
+}
+
+grade_id
+04ec05fa-5627-4e4d-8250-7e3519ed407c
 
 ## Testing Order Summary
 ```

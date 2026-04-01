@@ -12,7 +12,7 @@ class ComponentType(PyEnum):
 class Grade(BaseModel):
     __tablename__ = "grades"
     
-    student_id = Column(ForeignKey('users.id'), nullable=False, index=True)
+    student_id = Column(ForeignKey('students.id'), nullable=False, index=True)
     course_id = Column(ForeignKey('courses.id'), nullable=False, index=True)
     component_type = Column(Enum(ComponentType), nullable=False)
     score = Column(Float, nullable=False)
@@ -22,7 +22,7 @@ class Grade(BaseModel):
     remarks = Column(Text, nullable=True)
 
     # Relationships
-    student = relationship("User", back_populates="grades")
+    student = relationship("Student", back_populates="grades")
     course = relationship("Course", back_populates="grades")
 
     __table_args__ = (
@@ -33,13 +33,13 @@ class Grade(BaseModel):
 class GPA(BaseModel):
     __tablename__ = "gpas"
     
-    student_id = Column(ForeignKey('users.id'), nullable=False, index=True)
+    student_id = Column(ForeignKey('students.id'), nullable=False, index=True)
     semester = Column(String(50), nullable=False)
     year = Column(Integer, nullable=False)
     gpa_value = Column(Float, nullable=False)
 
     # Relationships
-    student = relationship("User", back_populates="gpas")
+    student = relationship("Student", back_populates="gpas")
 
     __table_args__ = (
         Index('idx_gpa_student', 'student_id'),

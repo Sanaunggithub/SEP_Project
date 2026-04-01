@@ -87,17 +87,22 @@ def delete_grade(
     db.delete(grade)
     db.commit()
 
-@router.get("/gpa/{student_id}", response_model=list[GPASchema])
+@router.get("/gpa/{student_id}")
 def get_student_gpa(
     student_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role.value not in ["admin"] and str(current_user.id) != student_id:
+    from models.student import Student
+
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    if current_user.role.value not in ["admin", "instructor"] and str(current_user.id) != str(student.user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
-    gpas = db.query(GPA).filter(GPA.student_id == student_id).all()
-    return gpas
+
+    return {"student_id": student_id, "gpa": student.gpa}
 
 @router.get("/report/{course_id}")
 def get_grade_distribution(

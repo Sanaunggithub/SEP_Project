@@ -31,7 +31,10 @@ class Student(BaseModel):
     user = relationship("User", uselist=False)
     enrollments = relationship("CourseEnrollment", back_populates="student")
     attendances = relationship("Attendance", back_populates="student")
-
+    submissions = relationship("Submission", back_populates="student")
+    grades = relationship("Grade", back_populates="student")
+    gpas = relationship("GPA", back_populates="student")
+    
     __table_args__ = (
         Index('idx_student_user', 'user_id'),
         Index('idx_student_id_number', 'student_id_number'),

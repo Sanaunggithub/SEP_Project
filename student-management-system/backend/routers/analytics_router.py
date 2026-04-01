@@ -7,7 +7,7 @@ from models.course import Course, CourseEnrollment
 from models.attendance import Attendance
 from models.grade import Grade
 from models.analytics import ReportSnapshot
-from models.schemas import ReportSnapshotSchema, ReportSnapshotCreate
+from schemas.analytics import ReportSnapshotCreate, ReportSnapshotResponse
 from core.security import get_current_user
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -116,7 +116,7 @@ def get_student_performance(
         "attendance_records": len(attendance)
     }
 
-@router.post("/generate-report", response_model=ReportSnapshotSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/generate-report", response_model=ReportSnapshotResponse, status_code=status.HTTP_201_CREATED)
 def generate_report(
     report: ReportSnapshotCreate,
     db: Session = Depends(get_db),
@@ -128,7 +128,7 @@ def generate_report(
     db.refresh(db_report)
     return db_report
 
-@router.get("/reports", response_model=list[ReportSnapshotSchema])
+@router.get("/reports", response_model=list[ReportSnapshotCreate])
 def list_reports(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),

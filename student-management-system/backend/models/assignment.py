@@ -19,7 +19,7 @@ class Assignment(BaseModel):
     allow_late_submission = Column(Boolean, default=False, nullable=False)
     late_penalty_percent = Column(Float, default=0.0, nullable=False)
     file_types_allowed = Column(JSON, nullable=True)
-
+    
     # Relationships
     course = relationship("Course", back_populates="assignments")
     submissions = relationship("Submission", back_populates="assignment", cascade="all, delete-orphan")
@@ -31,7 +31,7 @@ class Assignment(BaseModel):
 class Submission(BaseModel):
     __tablename__ = "submissions"
     
-    student_id = Column(ForeignKey('users.id'), nullable=False, index=True)
+    student_id = Column(ForeignKey('students.id'), nullable=False, index=True)
     assignment_id = Column(ForeignKey('assignments.id'), nullable=False, index=True)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     file_url = Column(String(500), nullable=False)
@@ -42,7 +42,7 @@ class Submission(BaseModel):
     status = Column(Enum(SubmissionStatus), default=SubmissionStatus.submitted, nullable=False)
 
     # Relationships
-    student = relationship("User", back_populates="submissions")
+    student = relationship("Student", back_populates="submissions")
     assignment = relationship("Assignment", back_populates="submissions")
 
     __table_args__ = (

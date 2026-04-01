@@ -6,6 +6,8 @@ from models.auth import User
 from models.assignment import Assignment, Submission
 from schemas.assignment import AssignmentCreate, AssignmentUpdate, AssignmentResponse, SubmissionCreate, SubmissionUpdate, SubmissionResponse
 from core.security import get_current_user
+import os
+from core.config import settings
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
@@ -85,24 +87,27 @@ def submit_assignment(
     db: Session = Depends(get_db),
     current_user: User = Depends(RoleChecker(["student"]))
 ):
-    import os
-    from core.config import UPLOAD_DIR
+    from models.student import Student
+
+    student = db.query(Student).filter(Student.user_id == current_user.id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student profile not found")
 
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
 
-    if not os.path.exists(UPLOAD_DIR):
-        os.makedirs(UPLOAD_DIR)
+    if not os.path.exists(settings.UPLOAD_DIR):
+        os.makedirs(settings.UPLOAD_DIR)
 
-    file_path = f"{UPLOAD_DIR}/{assignment_id}_{current_user.id}_{file.filename}"
+    file_path = f"{settings.UPLOAD_DIR}/{assignment_id}_{student.id}_{file.filename}"
     with open(file_path, "wb") as f:
         f.write(file.file.read())
 
     is_late = datetime.now() > assignment.due_date if assignment.due_date else False
 
     submission = Submission(
-        student_id=current_user.id,
+        student_id=student.id,
         assignment_id=assignment_id,
         file_url=file_path,
         is_late=is_late

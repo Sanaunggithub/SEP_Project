@@ -7,8 +7,6 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
     <style>
         :root { --primary: #667eea; --secondary: #764ba2; }
@@ -81,6 +79,7 @@
             </div>
 
             <div class="col-md-9 col-lg-10 main-content">
+                <div id="page-error" class="alert alert-danger d-none mb-3"></div>
                 <div class="page-header">
                     <h1>Manage Assignments</h1>
                     <button class="btn btn-add" id="add-assignment-btn">
@@ -100,7 +99,7 @@
                                     <th>Title</th>
                                     <th>Course</th>
                                     <th>Due Date</th>
-                                    <th>Submissions</th>
+                                    <th>Max Score</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -115,35 +114,59 @@
         </div>
     </div>
 
+
     <!-- Add/Edit Assignment Modal -->
     <div class="modal fade" id="assignmentModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Assignment</h5>
+                    <h5 class="modal-title" id="modalTitle">Add Assignment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="modalError" class="alert alert-danger d-none mb-3"></div>
                     <form id="assignmentForm">
-                        <div class="mb-3">
-                            <label class="form-label">Title *</label>
-                            <input type="text" class="form-control" id="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Course *</label>
-                            <select class="form-control" id="course" required>
-                                <option>Select Course</option>
-                                <option value="CS101">CS101 - Introduction to Python</option>
-                                <option value="CS201">CS201 - Data Structures</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Due Date *</label>
-                            <input type="date" class="form-control" id="dueDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="4"></textarea>
+                        <div class="row g-2">
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Course *</label>
+                                <select class="form-control" id="assignCourseId">
+                                    <option value="">Loading courses...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="assignTitle">
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="assignDescription" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Due Date *</label>
+                                <input type="datetime-local" class="form-control" id="assignDueDate">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Max Score *</label>
+                                <input type="number" class="form-control" id="assignMaxScore" min="0" step="0.1"
+                                    value="100">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Late Penalty (%)</label>
+                                <input type="number" class="form-control" id="assignLatePenalty" min="0" max="100"
+                                    value="0">
+                            </div>
+                            <div class="col-md-6 mb-2 d-flex align-items-end">
+                                <div class="form-check ms-2 mb-2">
+                                    <input type="checkbox" class="form-check-input" id="assignAllowLate">
+                                    <label class="form-check-label fw-semibold">Allow Late Submission</label>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Allowed File Types</label>
+                                <input type="text" class="form-control" id="assignFileTypes"
+                                    placeholder="e.g. pdf,docx,zip">
+                                <small class="text-muted">Comma separated</small>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -154,12 +177,18 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- Delete Modal -->
     <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body"><p>Delete this assignment? This action cannot be undone.</p></div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete this assignment? This cannot be undone.</p>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
@@ -169,132 +198,250 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class AssignmentManagement:
-            def __init__(self):
-                self.assignments = [
-                    {"id": 1, "title": "Python Basics", "course": "CS101", "dueDate": "2024-03-15", "submissions": 35, "status": "pending"},
-                    {"id": 2, "title": "List Operations", "course": "CS101", "dueDate": "2024-03-10", "submissions": 40, "status": "graded"},
-                    {"id": 3, "title": "Data Structures Project", "course": "CS201", "dueDate": "2024-03-20", "submissions": 28, "status": "submitted"},
-                ]
-                self.current_id = None
-                self.setup_event_listeners()
-                self.load_assignments()
-                print("✓ Assignment Management initialized")
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/assignment.js"></script>
+    <script>
+        let allAssignments = [];
+        let allCourses = [];
+        let editingAssignId = null;
+        let deletingAssignId = null;
 
-            def setup_event_listeners(self):
-                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
-                document.getElementById("add-assignment-btn").addEventListener("click", lambda e: self.open_add_modal())
-                document.getElementById("saveAssignmentBtn").addEventListener("click", lambda e: self.save_assignment())
-                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_assignment())
-                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search())
+        // ── Helpers ───────────────────────────────────────────────────────────────────
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            const m = bootstrap.Modal.getInstance(el);
+            if (m) m.hide();
+            setTimeout(() => {
+                document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+                document.body.classList.remove("modal-open");
+                document.body.style.removeProperty("padding-right");
+                document.body.style.removeProperty("overflow");
+            }, 300);
+        }
 
-            def load_assignments(self):
-                html = ""
-                for a in self.assignments:
-                    status_badge = f'<span class="badge badge-{a["status"]}">{a["status"].title()}</span>'
-                    html += f"""<tr>
-                        <td>{a['title']}</td>
-                        <td>{a['course']}</td>
-                        <td>{a['dueDate']}</td>
-                        <td>{a['submissions']}</td>
-                        <td>{status_badge}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="AssignmentManagement_instance.edit({a['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="AssignmentManagement_instance.open_delete({a['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("assignments-list").innerHTML = html
+        function showModalError(msg) {
+            const el = document.getElementById("modalError");
+            el.textContent = msg;
+            el.classList.remove("d-none");
+            setTimeout(() => el.classList.add("d-none"), 5000);
+        }
 
-            def open_add_modal(self):
-                self.current_id = None
-                document.getElementById("assignmentForm").reset()
-                from bootstrap import Modal
-                Modal(document.getElementById("assignmentModal")).show()
+        function isOverdue(dueDateStr) {
+            return new Date(dueDateStr) < new Date();
+        }
 
-            def edit(self, aid):
-                a = next((x for x in self.assignments if x['id'] == aid), None)
-                if a:
-                    self.current_id = aid
-                    document.getElementById("title").value = a['title']
-                    document.getElementById("course").value = a['course']
-                    document.getElementById("dueDate").value = a['dueDate']
-                    from bootstrap import Modal
-                    Modal(document.getElementById("assignmentModal")).show()
+        // ── Load ──────────────────────────────────────────────────────────────────────
+        async function loadCourses() {
+            try {
+                allCourses = await apiFetch("/courses/?skip=0&limit=1000");
+                document.getElementById("assignCourseId").innerHTML =
+                    `<option value="">Select Course</option>` +
+                    allCourses.map(c => `<option value="${c.id}">${c.course_code} - ${c.title}</option>`).join("");
+            } catch (err) {
+                console.error("Course load error:", err);
+            }
+        }
 
-            def save_assignment(self):
-                if self.current_id:
-                    a = next((x for x in self.assignments if x['id'] == self.current_id), None)
-                    if a:
-                        a['title'] = document.getElementById("title").value
-                        a['course'] = document.getElementById("course").value
-                        a['dueDate'] = document.getElementById("dueDate").value
-                else:
-                    new_id = max([x['id'] for x in self.assignments]) + 1
-                    self.assignments.append({
-                        "id": new_id,
-                        "title": document.getElementById("title").value,
-                        "course": document.getElementById("course").value,
-                        "dueDate": document.getElementById("dueDate").value,
-                        "submissions": 0,
-                        "status": "pending"
-                    })
-                self.load_assignments()
-                from bootstrap import Modal
-                Modal(document.getElementById("assignmentModal")).hide()
+        async function loadAssignments() {
+            try {
+                const tbody = document.getElementById("assignments-list");
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
+                allAssignments = await apiFetch("/assignments/?skip=0&limit=100");
+                renderAssignments(allAssignments);
+            } catch (err) {
+                document.getElementById("assignments-list").innerHTML =
+                    `<tr><td colspan="6" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
 
-            def open_delete(self, aid):
-                self.current_id = aid
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).show()
+        // ── Render ────────────────────────────────────────────────────────────────────
+        function renderAssignments(assignments) {
+            const tbody = document.getElementById("assignments-list");
+            if (!assignments || assignments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+                <div><i class="bi bi-inbox"></i><p>No assignments</p></div></td></tr>`;
+                return;
+            }
 
-            def delete_assignment(self):
-                self.assignments = [x for x in self.assignments if x['id'] != self.current_id]
-                self.load_assignments()
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).hide()
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
 
-            def search(self):
-                term = document.getElementById("search-input").value.lower()
-                filtered = [a for a in self.assignments if term in a['title'].lower()]
-                html = ""
-                for a in filtered:
-                    status_badge = f'<span class="badge badge-{a["status"]}">{a["status"].title()}</span>'
-                    html += f"""<tr>
-                        <td>{a['title']}</td>
-                        <td>{a['course']}</td>
-                        <td>{a['dueDate']}</td>
-                        <td>{a['submissions']}</td>
-                        <td>{status_badge}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="AssignmentManagement_instance.edit({a['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="AssignmentManagement_instance.open_delete({a['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("assignments-list").innerHTML = html
+            tbody.innerHTML = assignments.map(a => {
+                const overdue = isOverdue(a.due_date);
+                const dueDate = new Date(a.due_date).toLocaleString();
+                const statusBadge = overdue
+                    ? `<span class="badge badge-pending">Overdue</span>`
+                    : `<span class="badge badge-submitted">Active</span>`;
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
+                return `
+            <tr>
+                <td><strong>${a.title}</strong></td>
+                <td>${courseMap[a.course_id] || a.course_id}</td>
+                <td>${dueDate}</td>
+                <td>${a.max_score} pts</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="openEditModal('${a.id}')">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${a.id}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>`;
+            }).join("");
+        }
 
-        AssignmentManagement_instance = AssignmentManagement()
-    </py-script>
-</body>
-</html>
-                if not token or role != "admin":
-                    window.location.href = "../login.html"
+        // ── Search ────────────────────────────────────────────────────────────────────
+        function searchAssignments() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
 
-            def setup_event_listeners(self):
-                logout_btn = document.getElementById("logout-btn")
-                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
+            const filtered = allAssignments.filter(a =>
+                (a.title || "").toLowerCase().includes(term) ||
+                (courseMap[a.course_id] || "").includes(term) ||
+                (a.description || "").toLowerCase().includes(term)
+            );
+            renderAssignments(filtered);
+        }
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
+        // ── Modals ────────────────────────────────────────────────────────────────────
+        function openAddModal() {
+            editingAssignId = null;
+            document.getElementById("assignmentForm").reset();
+            document.getElementById("modalTitle").textContent = "Add Assignment";
+            document.getElementById("modalError").classList.add("d-none");
+            document.getElementById("assignCourseId").disabled = false;
+            document.getElementById("assignMaxScore").value = "100";
+            document.getElementById("assignLatePenalty").value = "0";
+            new bootstrap.Modal(document.getElementById("assignmentModal")).show();
+        }
 
-        AssignmentManagement()
-    </py-script>
+        function openEditModal(assignId) {
+            editingAssignId = assignId;
+            const a = allAssignments.find(a => a.id === assignId);
+            if (!a) return;
+
+            document.getElementById("modalTitle").textContent = "Edit Assignment";
+            document.getElementById("modalError").classList.add("d-none");
+            document.getElementById("assignCourseId").value = a.course_id;
+            document.getElementById("assignCourseId").disabled = true;
+            document.getElementById("assignTitle").value = a.title || "";
+            document.getElementById("assignDescription").value = a.description || "";
+            document.getElementById("assignDueDate").value = a.due_date
+                ? new Date(a.due_date).toISOString().slice(0, 16) : "";
+            document.getElementById("assignMaxScore").value = a.max_score || "";
+            document.getElementById("assignLatePenalty").value = a.late_penalty_percent || 0;
+            document.getElementById("assignAllowLate").checked = a.allow_late_submission || false;
+            document.getElementById("assignFileTypes").value = (a.file_types_allowed || []).join(",");
+
+            new bootstrap.Modal(document.getElementById("assignmentModal")).show();
+        }
+
+        function openDeleteModal(assignId) {
+            deletingAssignId = assignId;
+            new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+        }
+
+        // ── Save ──────────────────────────────────────────────────────────────────────
+        async function saveAssignment() {
+            const btn = document.getElementById("saveAssignmentBtn");
+            document.getElementById("modalError").classList.add("d-none");
+
+            const courseId = document.getElementById("assignCourseId").value;
+            const title = document.getElementById("assignTitle").value.trim();
+            const description = document.getElementById("assignDescription").value.trim();
+            const dueDate = document.getElementById("assignDueDate").value;
+            const maxScore = parseFloat(document.getElementById("assignMaxScore").value);
+            const latePenalty = parseFloat(document.getElementById("assignLatePenalty").value) || 0;
+            const allowLate = document.getElementById("assignAllowLate").checked;
+            const fileTypes = document.getElementById("assignFileTypes").value
+                .split(",").map(f => f.trim()).filter(f => f);
+
+            if (!editingAssignId && !courseId) { showModalError("Please select a course"); return; }
+            if (!title) { showModalError("Title is required"); return; }
+            if (!dueDate) { showModalError("Due date is required"); return; }
+            if (isNaN(maxScore)) { showModalError("Max score is required"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Saving...`;
+
+            try {
+                if (editingAssignId) {
+                    await apiFetch(`/assignments/${editingAssignId}`, {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            title,
+                            description: description || null,
+                            due_date: dueDate,
+                            max_score: maxScore,
+                            allow_late_submission: allowLate,
+                            late_penalty_percent: latePenalty,
+                            file_types_allowed: fileTypes.length ? fileTypes : null
+                        })
+                    });
+                } else {
+                    await apiFetch("/assignments/", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            course_id: courseId,
+                            title,
+                            description: description || null,
+                            due_date: dueDate,
+                            max_score: maxScore,
+                            allow_late_submission: allowLate,
+                            late_penalty_percent: latePenalty,
+                            file_types_allowed: fileTypes.length ? fileTypes : null
+                        })
+                    });
+                }
+
+                closeModal("assignmentModal");
+                await loadAssignments();
+
+            } catch (err) {
+                showModalError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Save";
+            }
+        }
+
+        // ── Delete ────────────────────────────────────────────────────────────────────
+        async function confirmDelete() {
+            const btn = document.getElementById("confirmDeleteBtn");
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Deleting...`;
+            try {
+                await apiFetch(`/assignments/${deletingAssignId}`, { method: "DELETE" });
+                closeModal("deleteConfirmModal");
+                await loadAssignments();
+            } catch (err) {
+                closeModal("deleteConfirmModal");
+                const errDiv = document.getElementById("page-error");
+                if (errDiv) { errDiv.textContent = err.message; errDiv.classList.remove("d-none"); }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Delete";
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
+
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            document.getElementById("add-assignment-btn").addEventListener("click", () => openAddModal());
+            document.getElementById("saveAssignmentBtn").addEventListener("click", () => saveAssignment());
+            document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+            document.getElementById("search-input").addEventListener("keyup", () => searchAssignments());
+
+            await loadCourses();
+            await loadAssignments();
+        });
+    </script>
 </body>
 </html>

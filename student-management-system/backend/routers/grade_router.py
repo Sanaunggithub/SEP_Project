@@ -4,7 +4,7 @@ from sqlalchemy import func
 from database import get_db
 from models.auth import User
 from models.grade import Grade, GPA
-from models.schemas import GradeSchema, GradeCreate, GPASchema
+from schemas.grade import GradeResponse, GradeCreate, GradeUpdate, GPAResponse, GradeDistributionResponse
 from core.security import get_current_user
 
 router = APIRouter(prefix="/grades", tags=["grades"])
@@ -16,13 +16,13 @@ def check_role(required_roles: list):
         return current_user
     return role_checker
 
-@router.get("/", response_model=list[GradeSchema])
+@router.get("/", response_model=list[GradeResponse])
 def list_grades(
     student_id: str | None = Query(None),
     course_id: str | None = Query(None),
     semester: str | None = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -42,7 +42,7 @@ def list_grades(
     grades = query.offset(skip).limit(limit).all()
     return grades
 
-@router.post("/", response_model=GradeSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=GradeResponse, status_code=status.HTTP_201_CREATED)
 def create_grade(
     grade: GradeCreate,
     db: Session = Depends(get_db),
@@ -54,10 +54,10 @@ def create_grade(
     db.refresh(db_grade)
     return db_grade
 
-@router.put("/{grade_id}", response_model=GradeSchema)
+@router.put("/{grade_id}", response_model=GradeResponse)
 def update_grade(
     grade_id: str,
-    grade_update: GradeCreate,
+    grade_update: GradeUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["instructor", "admin"]))
 ):

@@ -48,7 +48,11 @@ class StudentResponse(StudentBase):
     updated_at: datetime
     is_active: bool
     full_name:Optional[str] = None
-    model_config = ConfigDict(from_attributes=True)
+    enrollment_date: date
+    email: Optional[str] = None        
+    phone_number: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)  
 
 class StudentDetailResponse(StudentResponse):
     user: UserResponse

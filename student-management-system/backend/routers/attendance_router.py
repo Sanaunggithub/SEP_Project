@@ -5,7 +5,7 @@ from datetime import datetime, date
 from database import get_db
 from models.auth import User
 from models.attendance import Attendance
-from schemas.attendance import AttendanceResponse, AttendanceCreate, AttendanceBulkCreate
+from schemas.attendance import AttendanceResponse, AttendanceCreate, AttendanceBulkCreate, AttendanceUpdate
 from core.security import get_current_user
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
@@ -40,13 +40,30 @@ def mark_attendance(
     db.refresh(db_attendance)
     return db_attendance
 
+
+@router.get("/", response_model=list[AttendanceResponse])
+def list_attendance(
+    course_id: str | None = Query(None),
+    student_id: str | None = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=1000),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(check_role(["instructor", "admin"]))
+):
+    query = db.query(Attendance)
+    if course_id:
+        query = query.filter(Attendance.course_id == course_id)
+    if student_id:
+        query = query.filter(Attendance.student_id == student_id)
+    return query.offset(skip).limit(limit).all()
+
 @router.get("/{course_id}")
 def get_course_attendance(
     course_id: str,
     date_from: date | None = Query(None),
     date_to: date | None = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["instructor", "admin"]))
 ):
@@ -82,20 +99,37 @@ def get_student_attendance(
 @router.put("/{attendance_id}", response_model=AttendanceResponse)
 def correct_attendance(
     attendance_id: str,
-    status_update: str = Query(...),
+    update: AttendanceUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["instructor", "admin"]))
 ):
     attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attendance record not found")
+        raise HTTPException(status_code=404, detail="Attendance record not found")
     
-    attendance.status = status_update
+    update_data = update.dict(exclude_unset=True, exclude_none=True)
+    for field, value in update_data.items():
+        setattr(attendance, field, value)
+    
     db.add(attendance)
     db.commit()
     db.refresh(attendance)
     return attendance
 
+# Add DELETE endpoint
+@router.delete("/{attendance_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_attendance(
+    attendance_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(check_role(["admin"]))
+):
+    attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+    if not attendance:
+        raise HTTPException(status_code=404, detail="Attendance record not found")
+    db.delete(attendance)
+    db.commit()
+
+    
 @router.get("/at-risk")
 def get_at_risk_students(
     threshold: float = Query(75.0, ge=0, le=100),

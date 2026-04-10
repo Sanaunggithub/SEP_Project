@@ -309,7 +309,8 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-
+        /* Auth-gated sections hidden by default */
+        .auth-only { display: none; }
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -369,8 +370,14 @@
                     <a class="nav-link" href="pages/login.html">
                         <i class="bi bi-box-arrow-in-right"></i> Login
                     </a>
+                    <button class="btn btn-logout" id="dashboard-btn" style="display:none;">
+                        <i class="bi bi-speedometer2"></i> My Dashboard
+                    </button>
                     <button class="btn btn-logout" id="logout-btn" style="display: none;">
                         <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                    <button class="btn btn-logout" id="logout-btn" style="display: none;">
+                        <i class="bi bi-speedometer2"></i> Logout
                     </button>
                 </div>
             </div>
@@ -395,19 +402,19 @@
                         <div class="stat-value" id="student-count">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label">Total Students</div>
+                        <div class="stat-label" id="label-student-count">Total Students</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="course-count">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label">Active Courses</div>
+                        <div class="stat-label" id="label-course-count">Active Courses</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="assignment-count">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label">Pending Assignments</div>
+                        <div class="stat-label" id="label-assignment-count">Pending Assignments</div>
                     </div>
 
                 </div>
@@ -480,27 +487,7 @@
                     <p>Secure login and user authentication</p>
                 </a>
             </div>
-                    </div>
-                    <h3>Assignments</h3>
-                    <p>Create, assign, and evaluate student assignments</p>
-                </a>
-
-                <a href="pages/analytics.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
-                        <i class="bi bi-bar-chart"></i>
-                    </div>
-                    <h3>Analytics</h3>
-                    <p>View detailed analytics and performance reports</p>
-                </a>
-
-                <a href="pages/login.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                    </div>
-                    <h3>Authentication</h3>
-                    <p>Secure login and user authentication</p>
-                </a>
-            </div>
+                    
         </div>
     </div>
 
@@ -511,61 +498,152 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Replace the entire <py-script>...</py-script> block with nothing -->
+    <!-- And add this JS before </body> -->
+    
+    <script src="scripts/main.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/student.js"></script>
+    <script src="scripts/course.js"></script>
+    <script src="scripts/assignment.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+                const token = localStorage.getItem("access_token");
+                const role = localStorage.getItem("user_role");
 
-    <!-- PyScript Component -->
-    <py-script>
-        class DashboardApp:
-            def __init__(self):
-                self.api_url = "http://localhost:8000"
-                self.check_auth()
-                self.setup_event_listeners()
-                self.fetch_dashboard_stats()
-                print("✓ Dashboard App initialized")
+                // ── Navbar buttons ────────────────────────────────────────────────────────
+                const logoutBtn = document.getElementById("logout-btn");
+                const dashboardBtn = document.getElementById("dashboard-btn");
+                const loginLink = document.querySelector('a.nav-link[href="pages/login.html"]');
+                const loginCard = document.querySelector('a.feature-card[href="pages/login.html"]');
 
-            def check_auth(self):
-                """Check if user is authenticated"""
-                token = document.localStorage.getItem("token")
-                logout_btn = document.getElementById("logout-btn")
-                
-                if token:
-                    logout_btn.style.display = "inline-block"
-                else:
-                    logout_btn.style.display = "none"
+                if (token) {
+                    // Show logout, hide login
+                    logoutBtn.style.display = "inline-block";
+                    logoutBtn.addEventListener("click", () => logoutUser());
+                    if (loginLink) loginLink.style.display = "none";
+                    if (loginCard) loginCard.style.display = "none";
 
-            def setup_event_listeners(self):
-                """Setup event listeners"""
-                logout_btn = document.getElementById("logout-btn")
-                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
-
-            def handle_logout(self, event):
-                """Handle logout"""
-                document.localStorage.removeItem("token")
-                window.location.href = "pages/login.html"
-
-            async def fetch_dashboard_stats(self):
-                """Fetch dashboard statistics from API"""
-                try:
-                    # Simulated stats - replace with actual API calls
-                    stats = {
-                        "students": 145,
-                        "courses": 12,
-                        "assignments": 8
+                    // Show dashboard button
+                    if (dashboardBtn) {
+                        dashboardBtn.style.display = "inline-block";
+                        const dashMap = {
+                            "admin": "pages/admin/dashboard.html",
+                            "instructor": "pages/dashboard.html",
+                            "student": "pages/student/dashboard.html"
+                        };
+                        dashboardBtn.addEventListener("click", () => {
+                            window.location.href = dashMap[role] || "pages/login.html";
+                        });
                     }
-                    
-                    # Update UI with stats
-                    document.getElementById("student-count").textContent = str(stats["students"])
-                    document.getElementById("course-count").textContent = str(stats["courses"])
-                    document.getElementById("assignment-count").textContent = str(stats["assignments"])
-                    
-                except Exception as e:
-                    print(f"Error fetching stats: {str(e)}")
-                    # Show default values on error
-                    document.getElementById("student-count").textContent = "0"
-                    document.getElementById("course-count").textContent = "0"
-                    document.getElementById("assignment-count").textContent = "0"
+                } else {
+                    // Hide logout and dashboard, show login
+                    logoutBtn.style.display = "none";
+                    if (dashboardBtn) dashboardBtn.style.display = "none";
+                    if (loginLink) loginLink.style.display = "inline-block";
+                    if (loginCard) loginCard.style.display = "inline-flex";
+                }
 
-        # Initialize the app
-        dashboard_app = DashboardApp()
-    </py-script>
+                // ── Auth guard for protected links ────────────────────────────────────────
+                const rules = [
+                    { pattern: /\/admin\//, roles: ["admin"] },
+                    { pattern: /\/student\//, roles: ["admin", "student"] },
+                    { pattern: /analytics|assignment|attendance|course|grade|student\.html/, roles: ["admin", "instructor"] }
+                ];
+
+                document.querySelectorAll("a.nav-link, a.feature-card").forEach(link => {
+                    const href = link.getAttribute("href") || "";
+                    const matchedRule = rules.find(r => r.pattern.test(href));
+                    if (!matchedRule) return;
+
+                    const allowed = token && matchedRule.roles.includes(role);
+                    if (!allowed) {
+                        link.style.opacity = "0.5";
+                        link.style.cursor = "not-allowed";
+                        link.style.pointerEvents = "none";
+                        link.addEventListener("click", e => {
+                            e.preventDefault();
+                            window.location.href = !token
+                                ? "/frontend/pages/login.html"
+                                : "/frontend/pages/login.html";
+                        }, true);
+                    }
+                });
+
+                // ── Stats ─────────────────────────────────────────────────────────────────
+                if (!token) {
+                    document.getElementById("student-count").textContent = "--";
+                    document.getElementById("course-count").textContent = "--";
+                    document.getElementById("assignment-count").textContent = "--";
+                    return; // stop here — no token, nothing else to do
+                }
+
+                if (role === "admin" || role === "instructor") {
+                    // System-wide stats
+                    try {
+                        const [students, courses, assignments] = await Promise.allSettled([
+                            apiFetch("/students/?skip=0&limit=100"),
+                            apiFetch("/courses/?skip=0&limit=100"),
+                            apiFetch("/assignments/?skip=0&limit=100")
+                        ]);
+
+                        document.getElementById("student-count").textContent =
+                            students.status === "fulfilled" && Array.isArray(students.value)
+                                ? students.value.length : "0";
+                        document.getElementById("course-count").textContent =
+                            courses.status === "fulfilled" && Array.isArray(courses.value)
+                                ? courses.value.length : "0";
+                        document.getElementById("assignment-count").textContent =
+                            assignments.status === "fulfilled" && Array.isArray(assignments.value)
+                                ? assignments.value.length : "0";
+                    } catch (err) {
+                        console.error("Stats error:", err);
+                    }
+
+                } else if (role === "student") {
+                    // Update stat labels for student context
+                    document.getElementById("label-student-count").textContent = "My GPA";
+                    document.getElementById("label-course-count").textContent = "My Courses";
+                    document.getElementById("label-assignment-count").textContent = "Pending Assignments";
+
+                    try {
+                        const studentId = localStorage.getItem("student_id");
+                        if (!studentId) {
+                            document.getElementById("student-count").textContent = "N/A";
+                            document.getElementById("course-count").textContent = "0";
+                            document.getElementById("assignment-count").textContent = "0";
+                            return;
+                        }
+
+                        const [studentData, courses, assignments] = await Promise.allSettled([
+                            apiFetch(`/students/${studentId}`),
+                            apiFetch(`/students/${studentId}/courses`),
+                            apiFetch("/assignments/?skip=0&limit=100")
+                        ]);
+
+                        document.getElementById("student-count").textContent =
+                            studentData.status === "fulfilled" && studentData.value.gpa != null
+                                ? studentData.value.gpa.toFixed(2) : "N/A";
+
+                        document.getElementById("course-count").textContent =
+                            courses.status === "fulfilled" && Array.isArray(courses.value)
+                                ? courses.value.length : "0";
+
+                        const assignList = assignments.status === "fulfilled"
+                            && Array.isArray(assignments.value)
+                            ? assignments.value : [];
+                        document.getElementById("assignment-count").textContent =
+                            assignList.filter(a => new Date(a.due_date) > new Date()).length;
+
+                    } catch (err) {
+                        console.error("Student stats error:", err);
+                        document.getElementById("student-count").textContent = "N/A";
+                        document.getElementById("course-count").textContent = "0";
+                        document.getElementById("assignment-count").textContent = "0";
+                    }
+                }
+            });
+    </script>
+    
 </body>
 </html>

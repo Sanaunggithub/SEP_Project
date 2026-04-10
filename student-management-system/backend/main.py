@@ -10,10 +10,25 @@ from models.attendance import Attendance
 from models.assignment import Assignment, Submission
 from models.analytics import ReportSnapshot
 from models.attendance import Attendance 
+from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5500",   # VS Code Live Server
+        "http://localhost:5500",    # Live Server alternative
+        "http://localhost:3000",    # in case you switch later
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router.router)   
 app.include_router(student_router.router)
 app.include_router(course_router.router)
 app.include_router(grade_router.router)

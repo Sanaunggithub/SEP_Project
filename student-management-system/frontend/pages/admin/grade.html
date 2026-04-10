@@ -7,9 +7,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
-
+    
     <style>
         :root { --primary: #667eea; --secondary: #764ba2; }
         body { background: #f8fafc; font-family: 'Segoe UI'; }
@@ -97,6 +95,7 @@
             </div>
 
             <div class="col-md-9 col-lg-10 main-content">
+                <div id="page-error" class="alert alert-danger d-none mb-3"></div>
                 <div class="page-header">
                     <h1>Manage Grades</h1>
                     <button class="btn btn-add" id="add-grade-btn"><i class="bi bi-plus-lg"></i> Record Grade</button>
@@ -113,9 +112,10 @@
                                 <tr>
                                     <th>Student</th>
                                     <th>Course</th>
+                                    <th>Component</th>
+                                    <th>Score</th>
                                     <th>Grade</th>
-                                    <th>Percentage</th>
-                                    <th>Recorded Date</th>
+                                    <th>Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -129,45 +129,56 @@
         </div>
     </div>
 
+    <!-- Replace existing gradeModal entirely -->
     <div class="modal fade" id="gradeModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-bottom">
-                    <h5 class="modal-title">Record Grade</h5>
+                    <h5 class="modal-title" id="modalTitle">Record Grade</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="modalError" class="alert alert-danger d-none mb-3"></div>
                     <form id="gradeForm">
-                        <div class="mb-3">
-                            <label class="form-label">Student *</label>
-                            <select class="form-control" id="student" required>
-                                <option>Select Student</option>
-                                <option value="John Smith">John Smith</option>
-                                <option value="Sarah Johnson">Sarah Johnson</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Course *</label>
-                            <select class="form-control" id="course" required>
-                                <option>Select Course</option>
-                                <option value="CS101">CS101</option>
-                                <option value="CS201">CS201</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Grade *</label>
-                            <select class="form-control" id="grade" required>
-                                <option value="">Select Grade</option>
-                                <option value="A">A (90-100%)</option>
-                                <option value="B">B (80-89%)</option>
-                                <option value="C">C (70-79%)</option>
-                                <option value="D">D (60-69%)</option>
-                                <option value="F">F (Below 60%)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Percentage *</label>
-                            <input type="number" class="form-control" id="percentage" min="0" max="100" required>
+                        <div class="row g-2">
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Student *</label>
+                                <select class="form-control" id="gradeStudentId">
+                                    <option value="">Loading students...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Course *</label>
+                                <select class="form-control" id="gradeCourseId">
+                                    <option value="">Loading courses...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Component Type *</label>
+                                <select class="form-control" id="gradeComponentType">
+                                    <option value="assignment">Assignment</option>
+                                    <option value="quiz">Quiz</option>
+                                    <option value="midterm">Midterm</option>
+                                    <option value="final">Final</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Score *</label>
+                                <input type="number" class="form-control" id="gradeScore" min="0" step="0.1">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Max Score *</label>
+                                <input type="number" class="form-control" id="gradeMaxScore" min="0" step="0.1" value="100">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Weight (0-1) *</label>
+                                <input type="number" class="form-control" id="gradeWeight" min="0" max="1" step="0.01"
+                                    value="1.0">
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Remarks</label>
+                                <textarea class="form-control" id="gradeRemarks" rows="2"></textarea>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -193,114 +204,266 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class GradeManagement:
-            def __init__(self):
-                self.grades = [
-                    {"id": 1, "student": "John Smith", "course": "CS101", "grade": "A", "percentage": 92, "date": "2024-03-10"},
-                    {"id": 2, "student": "Sarah Johnson", "course": "CS101", "grade": "A", "percentage": 95, "date": "2024-03-10"},
-                    {"id": 3, "student": "John Smith", "course": "CS201", "grade": "B", "percentage": 85, "date": "2024-03-05"},
-                ]
-                self.current_id = None
-                self.setup_event_listeners()
-                self.load_grades()
-                print("✓ Grade Management initialized")
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/grade.js"></script>
+    <script>
+        let allGrades = [];
+        let allStudents = [];
+        let allCourses = [];
+        let editingGradeId = null;
+        let deletingGradeId = null;
 
-            def setup_event_listeners(self):
-                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
-                document.getElementById("add-grade-btn").addEventListener("click", lambda e: self.open_add_modal())
-                document.getElementById("saveGradeBtn").addEventListener("click", lambda e: self.save_grade())
-                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_grade())
-                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search())
+        // ── Helpers ───────────────────────────────────────────────────────────────────
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            const m = bootstrap.Modal.getInstance(el);
+            if (m) m.hide();
+            setTimeout(() => {
+                document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+                document.body.classList.remove("modal-open");
+                document.body.style.removeProperty("padding-right");
+                document.body.style.removeProperty("overflow");
+            }, 300);
+        }
 
-            def load_grades(self):
-                html = ""
-                for grade in self.grades:
-                    grade_class = f"grade-{grade['grade'].lower()}"
-                    html += f"""<tr>
-                        <td>{grade['student']}</td>
-                        <td>{grade['course']}</td>
-                        <td><span class="grade-badge {grade_class}">{grade['grade']}</span></td>
-                        <td>{grade['percentage']}%</td>
-                        <td>{grade['date']}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="GradeManagement_instance.edit({grade['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="GradeManagement_instance.open_delete({grade['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("grades-list").innerHTML = html or '<tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i><p>No grades</p></td></tr>'
+        function showModalError(msg) {
+            const el = document.getElementById("modalError");
+            el.textContent = msg;
+            el.classList.remove("d-none");
+            setTimeout(() => el.classList.add("d-none"), 5000);
+        }
 
-            def open_add_modal(self):
-                self.current_id = None
-                document.getElementById("gradeForm").reset()
-                from bootstrap import Modal
-                Modal(document.getElementById("gradeModal")).show()
+        function scoreToLetter(score, maxScore) {
+            const pct = (score / maxScore) * 100;
+            if (pct >= 90) return { letter: "A", cls: "grade-a" };
+            if (pct >= 80) return { letter: "B", cls: "grade-b" };
+            if (pct >= 70) return { letter: "C", cls: "grade-c" };
+            if (pct >= 60) return { letter: "D", cls: "grade-badge bg-warning text-dark" };
+            return { letter: "F", cls: "grade-badge bg-danger text-white" };
+        }
 
-            def edit(self, gid):
-                grade = next((g for g in self.grades if g['id'] == gid), None)
-                if grade:
-                    self.current_id = gid
-                    document.getElementById("student").value = grade['student']
-                    document.getElementById("course").value = grade['course']
-                    document.getElementById("grade").value = grade['grade']
-                    document.getElementById("percentage").value = grade['percentage']
-                    from bootstrap import Modal
-                    Modal(document.getElementById("gradeModal")).show()
+        // ── Load data ─────────────────────────────────────────────────────────────────
+        async function loadGrades() {
+            try {
+                const tbody = document.getElementById("grades-list");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
+                allGrades = await apiFetch("/grades/?skip=0&limit=100");
+                renderGrades(allGrades);
+            } catch (err) {
+                document.getElementById("grades-list").innerHTML =
+                    `<tr><td colspan="7" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
 
-            def save_grade(self):
-                student = document.getElementById("student").value
-                course = document.getElementById("course").value
-                grade = document.getElementById("grade").value
-                percentage = int(document.getElementById("percentage").value)
-                
-                if self.current_id:
-                    g = next((x for x in self.grades if x['id'] == self.current_id), None)
-                    if g:
-                        g.update({"student": student, "course": course, "grade": grade, "percentage": percentage})
-                else:
-                    new_id = max([x['id'] for x in self.grades]) + 1
-                    self.grades.append({"id": new_id, "student": student, "course": course, "grade": grade, "percentage": percentage, "date": "2024-03-15"})
-                
-                self.load_grades()
-                from bootstrap import Modal
-                Modal(document.getElementById("gradeModal")).hide()
+        async function loadDropdowns() {
+            try {
+                const [students, courses] = await Promise.all([
+                    apiFetch("/students/?skip=0&limit=100"),
+                    apiFetch("/courses/?skip=0&limit=100")
+                ]);
+                allStudents = students;
+                allCourses = courses;
 
-            def open_delete(self, gid):
-                self.current_id = gid
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).show()
+                document.getElementById("gradeStudentId").innerHTML =
+                    `<option value="">Select Student</option>` +
+                    students.map(s => `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`).join("");
 
-            def delete_grade(self):
-                self.grades = [g for g in self.grades if g['id'] != self.current_id]
-                self.load_grades()
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).hide()
+                document.getElementById("gradeCourseId").innerHTML =
+                    `<option value="">Select Course</option>` +
+                    courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.title}</option>`).join("");
+            } catch (err) {
+                console.error("Dropdown load error:", err);
+            }
+        }
 
-            def search(self):
-                term = document.getElementById("search-input").value.lower()
-                filtered = [g for g in self.grades if term in g['student'].lower() or term in g['course'].lower()]
-                html = ""
-                for grade in filtered:
-                    grade_class = f"grade-{grade['grade'].lower()}"
-                    html += f"""<tr>
-                        <td>{grade['student']}</td>
-                        <td>{grade['course']}</td>
-                        <td><span class="grade-badge {grade_class}">{grade['grade']}</span></td>
-                        <td>{grade['percentage']}%</td>
-                        <td>{grade['date']}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="GradeManagement_instance.edit({grade['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="GradeManagement_instance.open_delete({grade['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("grades-list").innerHTML = html
+        // ── Render ────────────────────────────────────────────────────────────────────
+        function renderGrades(grades) {
+            const tbody = document.getElementById("grades-list");
+            if (!grades || grades.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+                <i class="bi bi-inbox"></i><p>No grades recorded</p></td></tr>`;
+                return;
+            }
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
+            const studentMap = {};
+            allStudents.forEach(s => studentMap[s.id] = s.full_name || s.student_id_number);
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
 
-        GradeManagement_instance = GradeManagement()
-    </py-script>
+            tbody.innerHTML = grades.map(g => {
+                const { letter, cls } = scoreToLetter(g.score, g.max_score);
+                const pct = ((g.score / g.max_score) * 100).toFixed(1);
+                return `
+            <tr>
+                <td>${studentMap[g.student_id] || g.student_id}</td>
+                <td>${courseMap[g.course_id] || g.course_id}</td>
+                <td><span class="badge text-capitalize">${g.component_type}</span></td>
+                <td>${g.score} / ${g.max_score}</td>
+                <td><span class="grade-badge ${cls}">${letter} (${pct}%)</span></td>
+                <td>${g.graded_at ? g.graded_at.split("T")[0] : "-"}</td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="openEditModal('${g.id}')">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${g.id}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>`;
+            }).join("");
+        }
+
+        // ── Search ────────────────────────────────────────────────────────────────────
+        function searchGrades() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const studentMap = {};
+            allStudents.forEach(s => studentMap[s.id] = (s.full_name || "").toLowerCase());
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
+
+            const filtered = allGrades.filter(g =>
+                (studentMap[g.student_id] || "").includes(term) ||
+                (courseMap[g.course_id] || "").includes(term) ||
+                (g.component_type || "").toLowerCase().includes(term)
+            );
+            renderGrades(filtered);
+        }
+
+        // ── Modals ────────────────────────────────────────────────────────────────────
+        function openAddModal() {
+            editingGradeId = null;
+            document.getElementById("gradeForm").reset();
+            document.getElementById("modalTitle").textContent = "Record Grade";
+            document.getElementById("modalError").classList.add("d-none");
+            document.getElementById("gradeMaxScore").value = "100";
+            document.getElementById("gradeWeight").value = "1.0";
+
+            // Re-enable student/course dropdowns for add
+            document.getElementById("gradeStudentId").disabled = false;
+            document.getElementById("gradeCourseId").disabled = false;
+
+            new bootstrap.Modal(document.getElementById("gradeModal")).show();
+        }
+
+        function openEditModal(gradeId) {
+            editingGradeId = gradeId;
+            const g = allGrades.find(g => g.id === gradeId);
+            if (!g) return;
+
+            document.getElementById("modalTitle").textContent = "Edit Grade";
+            document.getElementById("modalError").classList.add("d-none");
+
+            // Disable student/course on edit (changing these would create a new record)
+            document.getElementById("gradeStudentId").value = g.student_id;
+            document.getElementById("gradeCourseId").value = g.course_id;
+            document.getElementById("gradeStudentId").disabled = true;
+            document.getElementById("gradeCourseId").disabled = true;
+            document.getElementById("gradeComponentType").value = g.component_type;
+            document.getElementById("gradeScore").value = g.score;
+            document.getElementById("gradeMaxScore").value = g.max_score;
+            document.getElementById("gradeWeight").value = g.weight;
+            document.getElementById("gradeRemarks").value = g.remarks || "";
+
+            new bootstrap.Modal(document.getElementById("gradeModal")).show();
+        }
+
+        function openDeleteModal(gradeId) {
+            deletingGradeId = gradeId;
+            new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+        }
+
+        // ── Save ──────────────────────────────────────────────────────────────────────
+        async function saveGrade() {
+            const btn = document.getElementById("saveGradeBtn");
+            document.getElementById("modalError").classList.add("d-none");
+
+            const studentId = document.getElementById("gradeStudentId").value;
+            const courseId = document.getElementById("gradeCourseId").value;
+            const componentType = document.getElementById("gradeComponentType").value;
+            const score = parseFloat(document.getElementById("gradeScore").value);
+            const maxScore = parseFloat(document.getElementById("gradeMaxScore").value);
+            const weight = parseFloat(document.getElementById("gradeWeight").value);
+            const remarks = document.getElementById("gradeRemarks").value || null;
+
+            // Validate
+            if (!editingGradeId && !studentId) { showModalError("Please select a student"); return; }
+            if (!editingGradeId && !courseId) { showModalError("Please select a course"); return; }
+            if (isNaN(score)) { showModalError("Please enter a valid score"); return; }
+            if (isNaN(maxScore)) { showModalError("Please enter a valid max score"); return; }
+            if (score > maxScore) { showModalError("Score cannot exceed max score"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Saving...`;
+
+            try {
+                if (editingGradeId) {
+                    // PUT uses GradeUpdate (all optional)
+                    await apiFetch(`/grades/${editingGradeId}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ score, max_score: maxScore, weight, remarks })
+                    });
+                } else {
+                    // POST uses GradeCreate (all required)
+                    await apiFetch("/grades/", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            student_id: studentId,
+                            course_id: courseId,
+                            component_type: componentType,
+                            score,
+                            max_score: maxScore,
+                            weight,
+                            remarks
+                        })
+                    });
+                }
+
+                closeModal("gradeModal");
+                await loadGrades();
+
+            } catch (err) {
+                showModalError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Save";
+            }
+        }
+
+        // ── Delete ────────────────────────────────────────────────────────────────────
+        async function confirmDelete() {
+            const btn = document.getElementById("confirmDeleteBtn");
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Deleting...`;
+            try {
+                await apiFetch(`/grades/${deletingGradeId}`, { method: "DELETE" });
+                closeModal("deleteConfirmModal");
+                await loadGrades();
+            } catch (err) {
+                closeModal("deleteConfirmModal");
+                // Show error in page instead of alert
+                const errDiv = document.getElementById("page-error");
+                if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Delete";
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
+
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            document.getElementById("add-grade-btn").addEventListener("click", () => openAddModal());
+            document.getElementById("saveGradeBtn").addEventListener("click", () => saveGrade());
+            document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+            document.getElementById("search-input").addEventListener("keyup", () => searchGrades());
+
+            await loadDropdowns();
+            await loadGrades();
+        });
+    </script>
 </body>
 </html>

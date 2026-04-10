@@ -114,11 +114,12 @@
                             <thead>
                                 <tr>
                                     <th>Code</th>
-                                    <th>Course Name</th>
-                                    <th>Instructor</th>
+                                    <th>Title</th>
+                                    <th>Instructor Name</th>
                                     <th>Credits</th>
-                                    <th>Max Students</th>
-                                    <th>Department</th>
+                                    <th>Enrolled / Max</th>
+                                    <th>Semester</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -133,50 +134,126 @@
     </div>
 
     <!-- Add/Edit Course Modal -->
+    <!-- Add/Edit Course Modal - replace existing modal body -->
     <div class="modal fade" id="courseModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTitle">Add Course</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <div id="modalError" class="alert alert-danger d-none mb-3"></div>
                     <form id="courseForm">
-                        <div class="mb-3">
-                            <label class="form-label">Course Code *</label>
-                            <input type="text" class="form-control" id="code" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Course Name *</label>
-                            <input type="text" class="form-control" id="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Instructor *</label>
-                            <input type="text" class="form-control" id="instructor" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Credits *</label>
-                            <input type="number" class="form-control" id="credits" min="1" max="6" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Max Students *</label>
-                            <input type="number" class="form-control" id="maxStudents" min="1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Department *</label>
-                            <select class="form-control" id="department" required>
-                                <option value="">Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Business">Business</option>
-                                <option value="Arts">Arts</option>
-                            </select>
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Course Code *</label>
+                                <input type="text" class="form-control" id="courseCode" placeholder="e.g. CS101">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="courseTitle">
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="courseDescription" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Credit Hours *</label>
+                                <input type="number" class="form-control" id="courseCreditHours" min="1" max="6">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Max Seats *</label>
+                                <input type="number" class="form-control" id="courseMaxSeats" min="1">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Semester *</label>
+                                <select class="form-control" id="courseSemester">
+                                    <option value="Fall">Fall</option>
+                                    <option value="Spring">Spring</option>
+                                    <option value="Summer">Summer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Year *</label>
+                                <input type="number" class="form-control" id="courseYear" min="2020" max="2030"
+                                    value="2026">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Start Time *</label>
+                                <input type="time" class="form-control" id="courseStartTime">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">End Time *</label>
+                                <input type="time" class="form-control" id="courseEndTime">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Room Location *</label>
+                                <input type="text" class="form-control" id="courseRoomLocation" placeholder="e.g. Room 301">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Schedule Days *</label>
+                                <input type="text" class="form-control" id="courseScheduleDays"
+                                    placeholder='e.g. Mon,Wed,Fri'>
+                                <small class="text-muted">Comma separated: Mon,Wed,Fri</small>
+                            </div>
+                            <!-- instructor_id only shown when adding -->
+                            <div class="col-12 mb-2" id="instructorIdField">
+                                <label class="form-label">Instructor *</label>
+                                <select class="form-control" id="courseInstructorId">
+                                    <option value="">Loading instructors...</option>
+                                </select>
+                            </div>
+                            <!-- status only shown when editing -->
+                            <div class="col-md-6 mb-2" id="statusField" style="display:none;">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" id="courseStatus">
+                                    <option value="active">Active</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveCourseBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Enroll Student Modal -->
+    <div class="modal fade" id="enrollModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="enrollModalTitle">Enroll Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="enrollModalError" class="alert alert-danger d-none mb-3"></div>
+                    <div id="enrollModalSuccess" class="alert alert-success d-none mb-3"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Student *</label>
+                        <select class="form-control" id="enrollStudentId">
+                            <option value="">Loading students...</option>
+                        </select>
+                    </div>
+                    <!-- Enrolled students list -->
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Currently Enrolled</label>
+                        <div id="enrolledStudentsList" class="border rounded p-2"
+                            style="max-height:200px; overflow-y:auto;">
+                            <span class="text-muted">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="confirmEnrollBtn">
+                        <i class="bi bi-person-plus"></i> Enroll
+                    </button>
                 </div>
             </div>
         </div>
@@ -191,8 +268,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete this course? This action cannot be undone.</p>
+                    <p>Are you sure you want to delete this course?</p>
                 </div>
+                <div id="modalError" class="alert alert-danger d-none mb-3"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
@@ -202,149 +280,380 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class CourseManagement:
-            def __init__(self):
-                self.courses = [
-                    {"id": 1, "code": "CS101", "name": "Introduction to Python", "instructor": "Dr. Smith", "credits": 3, "maxStudents": 40, "department": "Computer Science"},
-                    {"id": 2, "code": "CS201", "name": "Data Structures", "instructor": "Dr. Johnson", "credits": 4, "maxStudents": 35, "department": "Computer Science"},
-                    {"id": 3, "code": "ENG101", "name": "Engineering Fundamentals", "instructor": "Prof. Wilson", "credits": 3, "maxStudents": 50, "department": "Engineering"},
-                    {"id": 4, "code": "BUS101", "name": "Business Analytics", "instructor": "Dr. Brown", "credits": 3, "maxStudents": 45, "department": "Business"},
-                ]
-                self.current_course_id = None
-                self.setup_event_listeners()
-                self.load_courses()
-                print("✓ Course Management initialized")
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/course.js"></script>
+    <script>
+        let allCourses = [];
+        let editingCourseId = null;
+        let deletingCourseId = null;
 
-            def setup_event_listeners(self):
-                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
-                document.getElementById("add-course-btn").addEventListener("click", lambda e: self.open_add_modal())
-                document.getElementById("saveCourseBtn").addEventListener("click", lambda e: self.save_course())
-                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_course())
-                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search_courses())
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
 
-            def load_courses(self):
-                self.render_courses(self.courses)
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            document.getElementById("add-course-btn").addEventListener("click", () => openAddModal());
+            document.getElementById("saveCourseBtn").addEventListener("click", () => saveCourse());
+            document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+            document.getElementById("search-input").addEventListener("keyup", () => searchCourses());
 
-            def render_courses(self, courses_list):
-                table_body = document.getElementById("courses-list")
-                if not courses_list:
-                    table_body.innerHTML = '<tr><td colspan="7" class="empty-state"><div><i class="bi bi-inbox"></i><p>No courses found</p></div></td></tr>'
-                    return
-                
-                html = ""
-                for course in courses_list:
-                    html += f"""
-                    <tr>
-                        <td><strong>{course['code']}</strong></td>
-                        <td>{course['name']}</td>
-                        <td>{course['instructor']}</td>
-                        <td>{course['credits']}</td>
-                        <td>{course['maxStudents']}</td>
-                        <td>{course['department']}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="CourseManagement_instance.edit_course({course['id']})">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-delete" onclick="CourseManagement_instance.open_delete_modal({course['id']})">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </td>
-                    </tr>
-                    """
-                table_body.innerHTML = html
+            await loadCourses();
+        });
 
-            def open_add_modal(self):
-                self.current_course_id = None
-                document.getElementById("courseForm").reset()
-                document.getElementById("modalTitle").textContent = "Add Course"
-                from bootstrap import Modal
-                Modal(document.getElementById("courseModal")).show()
+        let enrollingCourseId = null;
+            let allStudentsForEnroll = [];
 
-            def edit_course(self, course_id):
-                course = next((c for c in self.courses if c['id'] == course_id), None)
-                if course:
-                    self.current_course_id = course_id
-                    document.getElementById("code").value = course['code']
-                    document.getElementById("name").value = course['name']
-                    document.getElementById("instructor").value = course['instructor']
-                    document.getElementById("credits").value = str(course['credits'])
-                    document.getElementById("maxStudents").value = str(course['maxStudents'])
-                    document.getElementById("department").value = course['department']
-                    document.getElementById("modalTitle").textContent = "Edit Course"
-                    from bootstrap import Modal
-                    Modal(document.getElementById("courseModal")).show()
+            async function loadStudentsForEnroll() {
+                try {
+                    allStudentsForEnroll = await apiFetch("/students/?skip=0&limit=1000");
+                    document.getElementById("enrollStudentId").innerHTML =
+                        `<option value="">Select Student</option>` +
+                        allStudentsForEnroll.map(s =>
+                            `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`
+                        ).join("");
+                } catch (err) {
+                    console.error("Failed to load students for enroll:", err);
+                }
+            }
 
-            def save_course(self):
-                code = document.getElementById("code").value
-                name = document.getElementById("name").value
-                instructor = document.getElementById("instructor").value
-                credits = int(document.getElementById("credits").value)
-                maxStudents = int(document.getElementById("maxStudents").value)
-                department = document.getElementById("department").value
-                
-                if not all([code, name, instructor, credits, maxStudents, department]):
-                    alert("Please fill in all fields")
-                    return
-                
-                if self.current_course_id:
-                    for course in self.courses:
-                        if course['id'] == self.current_course_id:
-                            course.update({
-                                'code': code, 'name': name, 'instructor': instructor,
-                                'credits': credits, 'maxStudents': maxStudents, 'department': department
+            async function openEnrollModal(courseId, courseTitle) {
+                enrollingCourseId = courseId;
+                document.getElementById("enrollModalTitle").textContent = `Enroll Student — ${courseTitle}`;
+                document.getElementById("enrollModalError").classList.add("d-none");
+                document.getElementById("enrollModalSuccess").classList.add("d-none");
+                document.getElementById("enrollStudentId").value = "";
+
+                new bootstrap.Modal(document.getElementById("enrollModal")).show();
+
+                // Load enrolled students list
+                await refreshEnrolledList(courseId);
+            }
+
+            async function refreshEnrolledList(courseId) {
+                const listEl = document.getElementById("enrolledStudentsList");
+                listEl.innerHTML = `<span class="text-muted">Loading...</span>`;
+                try {
+                    const enrolled = await apiFetch(`/courses/${courseId}/students`);
+                    if (!enrolled || enrolled.length === 0) {
+                        listEl.innerHTML = `<span class="text-muted fst-italic">No students enrolled yet</span>`;
+                        return;
+                    }
+                    listEl.innerHTML = enrolled.map(s => `
+            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <span>${s.full_name || s.student_id_number}</span>
+                <button class="btn btn-sm btn-danger py-0 px-2"
+                    onclick="unenrollStudent('${courseId}', '${s.id}')">
+                    <i class="bi bi-x"></i> Remove
+                </button>
+            </div>
+        `).join("");
+                } catch (err) {
+                    listEl.innerHTML = `<span class="text-danger">${err.message}</span>`;
+                }
+            }
+
+            async function confirmEnroll() {
+                const btn = document.getElementById("confirmEnrollBtn");
+                const studentId = document.getElementById("enrollStudentId").value;
+                const errorDiv = document.getElementById("enrollModalError");
+                const successDiv = document.getElementById("enrollModalSuccess");
+
+                errorDiv.classList.add("d-none");
+                successDiv.classList.add("d-none");
+
+                if (!studentId) {
+                    errorDiv.textContent = "Please select a student";
+                    errorDiv.classList.remove("d-none");
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Enrolling...`;
+
+                try {
+                    await apiFetch(`/courses/${enrollingCourseId}/enroll?student_id=${studentId}`, {
+                        method: "POST"
+                    });
+                    successDiv.textContent = "Student enrolled successfully!";
+                    successDiv.classList.remove("d-none");
+                    document.getElementById("enrollStudentId").value = "";
+
+                    // Refresh enrolled list and course table
+                    await refreshEnrolledList(enrollingCourseId);
+                    await loadCourses();
+
+                } catch (err) {
+                    errorDiv.textContent = err.message;
+                    errorDiv.classList.remove("d-none");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="bi bi-person-plus"></i> Enroll`;
+                }
+            }
+
+            async function unenrollStudent(courseId, studentId) {
+                if (!confirm("Remove this student from the course?")) return;
+                try {
+                    await apiFetch(`/courses/${courseId}/enroll?student_id=${studentId}`, {
+                        method: "DELETE"
+                    });
+                    await refreshEnrolledList(courseId);
+                    await loadCourses();
+                } catch (err) {
+                    const errorDiv = document.getElementById("enrollModalError");
+                    errorDiv.textContent = err.message;
+                    errorDiv.classList.remove("d-none");
+                }
+            }
+
+        // Add this function
+            let instructorMap = {};
+            async function loadInstructors() {
+                try {
+                    const users = await apiFetch("/auth/users?role=instructor&limit=100");
+                    const select = document.getElementById("courseInstructorId");
+                    select.innerHTML = `<option value="">Select Instructor</option>` +
+                        users.map(u => `<option value="${u.id}">${u.full_name} (${u.email})</option>`).join("");
+
+                    // Build lookup map
+                    instructorMap = {};
+                    users.forEach(u => instructorMap[u.id] = u.full_name);
+                } catch (err) {
+                    console.error("Could not load instructors:", err);
+                }
+            }
+
+            // Call in DOMContentLoaded
+            document.addEventListener("DOMContentLoaded", async () => {
+                    if (!requireAuth("admin")) return;
+
+                    document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+                    document.getElementById("add-course-btn").addEventListener("click", () => openAddModal());
+                    document.getElementById("saveCourseBtn").addEventListener("click", () => saveCourse());
+                    document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+                    document.getElementById("confirmEnrollBtn").addEventListener("click", () => confirmEnroll()); // ADD
+                    document.getElementById("search-input").addEventListener("keyup", () => searchCourses());
+
+                    await Promise.all([loadInstructors(), loadStudentsForEnroll()]); // ADD loadStudentsForEnroll
+                    await loadCourses();
+                });
+
+        async function loadCourses() {
+            try {
+                const tbody = document.getElementById("courses-list");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
+                allCourses = await apiFetch("/courses/?skip=0&limit=100");
+                renderCourses(allCourses);
+            } catch (err) {
+                document.getElementById("courses-list").innerHTML =
+                    `<tr><td colspan="7" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+
+        function renderCourses(courses) {
+                const tbody = document.getElementById("courses-list");
+                if (!courses || courses.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">
+                    <div><i class="bi bi-inbox"></i><p>No courses found</p></div></td></tr>`;
+                            return;
+                        }
+                        tbody.innerHTML = courses.map(c => `
+                            <tr>
+                                <td><strong>${c.course_code}</strong></td>
+                                <td>${c.title}</td>
+                                <td>${instructorMap[c.instructor_id] || c.instructor_id}</td>
+                                <td>${c.credit_hours}</td>
+                                <td>${c.enrolled_count} / ${c.max_seats}</td>
+                                <td>${c.semester} ${c.year}</td>
+                                <td>
+                                    <span class="badge ${c.status === 'active' ? 'bg-success' : c.status === 'cancelled' ? 'bg-danger' : 'bg-secondary'}">
+                                        ${c.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-success me-1" onclick="openEnrollModal('${c.id}', '${c.title}')">
+                                        <i class="bi bi-person-plus"></i> Enroll
+                                    </button>
+                                    <button class="btn btn-sm btn-edit me-1" onclick="openEditModal('${c.id}')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${c.id}')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join("");
+            }
+
+        function searchCourses() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const filtered = allCourses.filter(c =>
+                (c.title || "").toLowerCase().includes(term) ||
+                (c.course_code || "").toLowerCase().includes(term) ||
+                (c.semester || "").toLowerCase().includes(term)
+            );
+            renderCourses(filtered);
+        }
+
+        function openAddModal() {
+            editingCourseId = null;
+            document.getElementById("courseForm").reset();
+            document.getElementById("modalTitle").textContent = "Add Course";
+            document.getElementById("instructorIdField").style.display = "block";
+            document.getElementById("statusField").style.display = "none";
+            document.getElementById("courseYear").value = new Date().getFullYear();
+            new bootstrap.Modal(document.getElementById("courseModal")).show();
+        }
+
+        function showModalError(elementId, message) {
+                const el = document.getElementById(elementId);
+                if (el) {
+                    el.textContent = message;
+                    el.classList.remove("d-none");
+                    setTimeout(() => el.classList.add("d-none"), 5000); // auto-hide after 5s
+                }
+        }
+
+
+        function openEditModal(courseId) {
+            editingCourseId = courseId;
+            const c = allCourses.find(c => c.id === courseId);
+            if (!c) return;
+
+            document.getElementById("modalTitle").textContent = "Edit Course";
+            document.getElementById("instructorIdField").style.display = "none";
+            document.getElementById("statusField").style.display = "block";
+
+            document.getElementById("courseCode").value = c.course_code || "";
+            document.getElementById("courseTitle").value = c.title || "";
+            document.getElementById("courseDescription").value = c.description || "";
+            document.getElementById("courseCreditHours").value = c.credit_hours || "";
+            document.getElementById("courseMaxSeats").value = c.max_seats || "";
+            document.getElementById("courseSemester").value = c.semester || "Fall";
+            document.getElementById("courseYear").value = c.year || new Date().getFullYear();
+            document.getElementById("courseStartTime").value = c.start_time || "";
+            document.getElementById("courseEndTime").value = c.end_time || "";
+            document.getElementById("courseRoomLocation").value = c.room_location || "";
+            document.getElementById("courseScheduleDays").value = (c.schedule_days || []).join(",");
+            document.getElementById("courseStatus").value = c.status || "active";
+
+            new bootstrap.Modal(document.getElementById("courseModal")).show();
+        }
+
+        async function saveCourse() {
+                const btn = document.getElementById("saveCourseBtn");
+                const errorDiv = document.getElementById("modalError");
+                errorDiv.classList.add("d-none");
+
+                const scheduleDays = document.getElementById("courseScheduleDays").value
+                    .split(",").map(d => d.trim()).filter(d => d);
+
+                // Validate before sending
+                if (!document.getElementById("courseCode").value && !editingCourseId) {
+                    showModalError("modalError", "Course code is required");
+                    return;
+                }
+                if (!scheduleDays.length) {
+                    showModalError("modalError", "Please enter at least one schedule day (e.g. Mon,Wed)");
+                    return;
+                }
+                if (!document.getElementById("courseStartTime").value) {
+                    showModalError("modalError", "Start time is required");
+                    return;
+                }
+                if (!editingCourseId && !document.getElementById("courseInstructorId").value) {
+                    showModalError("modalError", "Please select an instructor");
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Saving...`;
+
+                try {
+                    if (editingCourseId) {
+                        await apiFetch(`/courses/${editingCourseId}`, {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                title: document.getElementById("courseTitle").value || undefined,
+                                description: document.getElementById("courseDescription").value || undefined,
+                                credit_hours: parseInt(document.getElementById("courseCreditHours").value) || undefined,
+                                max_seats: parseInt(document.getElementById("courseMaxSeats").value) || undefined,
+                                start_time: document.getElementById("courseStartTime").value || undefined,
+                                end_time: document.getElementById("courseEndTime").value || undefined,
+                                room_location: document.getElementById("courseRoomLocation").value || undefined,
+                                schedule_days: scheduleDays,
+                                status: document.getElementById("courseStatus").value || undefined
                             })
-                else:
-                    new_id = max([c['id'] for c in self.courses]) + 1 if self.courses else 1
-                    self.courses.append({
-                        "id": new_id, "code": code, "name": name, "instructor": instructor,
-                        "credits": credits, "maxStudents": maxStudents, "department": department
-                    })
-                
-                self.render_courses(self.courses)
-                from bootstrap import Modal
-                Modal(document.getElementById("courseModal")).hide()
-                alert("Course saved successfully!")
+                        });
+                    } else {
+                        await apiFetch("/courses/", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                course_code: document.getElementById("courseCode").value,
+                                title: document.getElementById("courseTitle").value,
+                                description: document.getElementById("courseDescription").value || null,
+                                credit_hours: parseInt(document.getElementById("courseCreditHours").value),
+                                max_seats: parseInt(document.getElementById("courseMaxSeats").value),
+                                semester: document.getElementById("courseSemester").value,
+                                year: parseInt(document.getElementById("courseYear").value),
+                                start_time: document.getElementById("courseStartTime").value,
+                                end_time: document.getElementById("courseEndTime").value,
+                                room_location: document.getElementById("courseRoomLocation").value,
+                                schedule_days: scheduleDays,
+                                instructor_id: document.getElementById("courseInstructorId").value
+                            })
+                        });
+                    }
 
-            def open_delete_modal(self, course_id):
-                self.current_course_id = course_id
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).show()
+                    // Success — close modal cleanly
+                    closeModal("courseModal");
+                    await loadCourses();
 
-            def delete_course(self):
-                self.courses = [c for c in self.courses if c['id'] != self.current_course_id]
-                self.render_courses(self.courses)
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).hide()
-                alert("Course deleted successfully!")
+                } catch (err) {
+                    // Show error INSIDE modal — no alert, no freeze
+                    showModalError("modalError", err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = "Save";
+                }
+            }
+        
+        function closeModal(modalId) {
+                const modalEl = document.getElementById(modalId);
+                const instance = bootstrap.Modal.getInstance(modalEl);
+                if (instance) instance.hide();
 
-            def search_courses(self):
-                search_term = document.getElementById("search-input").value.lower()
-                filtered = [c for c in self.courses if search_term in c['name'].lower() or search_term in c['instructor'].lower()]
-                self.render_courses(filtered)
+                // Force cleanup in case backdrop sticks
+                setTimeout(() => {
+                    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+                    document.body.classList.remove("modal-open");
+                    document.body.style.removeProperty("padding-right");
+                    document.body.style.removeProperty("overflow");
+                }, 300);
+        }
+        function openDeleteModal(courseId) {
+            deletingCourseId = courseId;
+            new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+        }
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
-
-        CourseManagement_instance = CourseManagement()
-    </py-script>
-</body>
-</html>
-                if not token or role != "admin":
-                    window.location.href = "../login.html"
-
-            def setup_event_listeners(self):
-                logout_btn = document.getElementById("logout-btn")
-                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
-
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
-
-        CourseManagement()
-    </py-script>
+        async function confirmDelete() {
+                const btn = document.getElementById("confirmDeleteBtn");
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Deleting...`;
+                try {
+                    await apiFetch(`/courses/${deletingCourseId}`, { method: "DELETE" });
+                    closeModal("deleteConfirmModal");
+                    await loadCourses();
+                } catch (err) {
+                    showModalError("modalError", err.message);
+                    closeModal("deleteConfirmModal");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = "Delete";
+                }
+            }
+    </script>
 </body>
 </html>

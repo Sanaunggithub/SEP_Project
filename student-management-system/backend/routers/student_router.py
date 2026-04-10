@@ -11,6 +11,14 @@ from core.security import get_current_user
 
 router = APIRouter(prefix="/students", tags=["students"])
 
+def build_student_response(student) -> StudentResponse:
+    data = StudentResponse.model_validate(student)
+    if student.user:
+        data.full_name    = student.user.full_name
+        data.email        = student.user.email
+        data.phone_number = student.user.phone_number
+    return data
+
 def check_role(required_roles: list):
     def role_checker(current_user: User = Depends(get_current_user)):
         if current_user.role.value not in required_roles:
@@ -18,38 +26,32 @@ def check_role(required_roles: list):
         return current_user
     return role_checker
 
+
+
 @router.get("/", response_model=list[StudentResponse])
 def list_students(
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["admin"]))
 ):
     students = db.query(Student).filter(Student.is_active == True).offset(skip).limit(limit).all()
-    result = []
-    for student in students:
-        student_data = StudentResponse.model_validate(student)
-        student_data.full_name = student.user.full_name if student.user else None
-        result.append(student_data)
-    
-    return result
+    return [build_student_response(s) for s in students]
 
-@router.get("/{student_id}", response_model=StudentResponse)
-def get_student(
-    student_id: str,
+@router.get("/by-user/{user_id}", response_model=StudentResponse)
+def get_student_by_user_id(
+    user_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    student = db.query(Student).filter(Student.id == student_id).first()
+    # Allow only the student themselves or an admin
+    if current_user.role.value != "admin" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    student = db.query(Student).filter(Student.user_id == user_id).first()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
-    
-    if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
-    student_data = StudentResponse.model_validate(student)
-    student_data.full_name = student.user.full_name if student.user else None
-    return student_data
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
 
 @router.post("/", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(
@@ -66,9 +68,20 @@ def create_student(
     db.commit()
     db.refresh(db_student)
     
-    student_data = StudentResponse.model_validate(db_student)
-    student_data.full_name = db_student.user.full_name if db_student.user else None
-    return student_data
+    return build_student_response(db_student)
+
+@router.get("/{student_id}", response_model=StudentResponse)
+def get_student(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return build_student_response(student)
 
 @router.put("/{student_id}", response_model=StudentResponse)
 def update_student(
@@ -89,9 +102,7 @@ def update_student(
     db.commit()
     db.refresh(student)
     
-    student_data = StudentResponse.model_validate(student)
-    student_data.full_name = student.user.full_name if student.user else None
-    return student_data
+    return build_student_response(student)
 
 @router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(
@@ -111,7 +122,7 @@ def delete_student(
 def get_student_courses(
     student_id: str,
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -129,7 +140,7 @@ def get_student_courses(
 def get_student_grades(
     student_id: str,
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -147,7 +158,7 @@ def get_student_grades(
 def get_student_attendance(
     student_id: str,
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

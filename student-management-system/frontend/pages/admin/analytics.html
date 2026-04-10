@@ -7,8 +7,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
         :root {
@@ -234,281 +233,274 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class AnalyticsDashboard:
-            def __init__(self):
-                self.check_auth()
-                self.setup_data()
-                self.calculate_metrics()
-                self.render_charts()
-                self.render_tables()
-                self.setup_event_listeners()
-                print("✓ Analytics Dashboard initialized")
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/analytics.js"></script>
+    <script>
+        let gradeChart, courseChart, attendanceChart, submissionChart;
 
-            def check_auth(self):
-                token = document.localStorage.getItem("token")
-                role = document.localStorage.getItem("role")
-                if not token or role != "admin":
-                    window.location.href = "../login.html"
+        // ── Helpers ───────────────────────────────────────────────────────────────────
+        function destroyChart(chart) {
+            if (chart) chart.destroy();
+        }
 
-            def setup_data(self):
-                # Sample student data
-                self.students = [
-                    {"id": 1, "name": "John Smith", "email": "john@student.edu", "phone": "555-0101", "department": "Computer Science", "enrollment_date": "2023-09-01"},
-                    {"id": 2, "name": "Sarah Johnson", "email": "sarah@student.edu", "phone": "555-0102", "department": "Computer Science", "enrollment_date": "2023-09-01"},
-                    {"id": 3, "name": "Michael Brown", "email": "michael@student.edu", "phone": "555-0103", "department": "Engineering", "enrollment_date": "2023-09-05"},
-                    {"id": 4, "name": "Emily Davis", "email": "emily@student.edu", "phone": "555-0104", "department": "Computer Science", "enrollment_date": "2023-09-10"},
-                    {"id": 5, "name": "David Wilson", "email": "david@student.edu", "phone": "555-0105", "department": "Business", "enrollment_date": "2023-09-15"},
-                ]
+        // ── Load all data and render ──────────────────────────────────────────────────
+        async function loadAnalytics() {
+            try {
+                const [students, courses, grades, attendance, assignments, enrollmentTrends, gradeDistribution, attendancePatterns, instructors] =
+                    await Promise.allSettled([
+                        apiFetch("/students/?skip=0&limit=1000"),
+                        apiFetch("/courses/?skip=0&limit=1000"),
+                        apiFetch("/grades/?skip=0&limit=1000"),
+                        apiFetch("/attendance/?skip=0&limit=1000"),
+                        apiFetch("/assignments/?skip=0&limit=1000"),
+                        apiFetch("/analytics/enrollment-trends"),
+                        apiFetch("/analytics/grade-distribution"),
+                        apiFetch("/analytics/attendance-patterns"),
+                        apiFetch("/auth/users?role=instructor&limit=1000")
+                    ]);
 
-                # Sample course data
-                self.courses = [
-                    {"id": 1, "code": "CS101", "name": "Python Basics", "instructor": "Dr. Smith", "credits": 3, "max_students": 30, "department": "Computer Science"},
-                    {"id": 2, "code": "CS201", "name": "Data Structures", "instructor": "Dr. Johnson", "credits": 4, "max_students": 25, "department": "Computer Science"},
-                    {"id": 3, "code": "ENG101", "name": "Engineering Physics", "instructor": "Prof. Williams", "credits": 4, "max_students": 30, "department": "Engineering"},
-                    {"id": 4, "code": "BUS101", "name": "Business Fundamentals", "instructor": "Prof. Brown", "credits": 3, "max_students": 35, "department": "Business"},
-                ]
+                const studentList = students.status === "fulfilled" ? students.value : [];
+                const courseList = courses.status === "fulfilled" ? courses.value : [];
+                const gradeList = grades.status === "fulfilled" ? grades.value : [];
+                const attendanceList = attendance.status === "fulfilled" ? attendance.value : [];
+                const assignmentList = assignments.status === "fulfilled" ? assignments.value : [];
+                const enrollData = enrollmentTrends.status === "fulfilled" ? enrollmentTrends.value : {};
+                const gradeData = gradeDistribution.status === "fulfilled" ? gradeDistribution.value : {};
+                const attData = attendancePatterns.status === "fulfilled" ? attendancePatterns.value : {};
+                const instructorList = instructors.status === "fulfilled" ? instructors.value : [];
 
-                # Sample grade data
-                self.grades = [
-                    {"id": 1, "student_id": 1, "student_name": "John Smith", "course_id": 1, "course_name": "Python Basics", "grade": "A", "percentage": 92},
-                    {"id": 2, "student_id": 2, "student_name": "Sarah Johnson", "course_id": 1, "course_name": "Python Basics", "grade": "A", "percentage": 95},
-                    {"id": 3, "student_id": 1, "student_name": "John Smith", "course_id": 2, "course_name": "Data Structures", "grade": "B", "percentage": 85},
-                    {"id": 4, "student_id": 3, "student_name": "Michael Brown", "course_id": 3, "course_name": "Engineering Physics", "grade": "B", "percentage": 88},
-                    {"id": 5, "student_id": 4, "student_name": "Emily Davis", "course_id": 1, "course_name": "Python Basics", "grade": "A", "percentage": 90},
-                    {"id": 6, "student_id": 5, "student_name": "David Wilson", "course_id": 4, "course_name": "Business Fundamentals", "grade": "B", "percentage": 86},
-                ]
+                // Build instructor lookup map
+                const instructorMap = {};
+                instructorList.forEach(u => instructorMap[u.id] = u.full_name);
 
-                # Sample attendance data
-                self.attendance = [
-                    {"id": 1, "student_id": 1, "student_name": "John Smith", "course_id": 1, "date": "2024-01-15", "status": "Present"},
-                    {"id": 2, "student_id": 2, "student_name": "Sarah Johnson", "course_id": 1, "date": "2024-01-15", "status": "Present"},
-                    {"id": 3, "student_id": 3, "student_name": "Michael Brown", "course_id": 3, "date": "2024-01-15", "status": "Absent"},
-                    {"id": 4, "student_id": 4, "student_name": "Emily Davis", "course_id": 1, "date": "2024-01-15", "status": "Late"},
-                    {"id": 5, "student_id": 1, "student_name": "John Smith", "course_id": 1, "date": "2024-01-16", "status": "Present"},
-                    {"id": 6, "student_id": 5, "student_name": "David Wilson", "course_id": 4, "date": "2024-01-16", "status": "Present"},
-                ]
+                renderMetrics(studentList, courseList, gradeList, attData);
+                renderGradeChart(gradeList);
+                renderCourseChart(courseList);
+                renderAttendanceChart(attData);
+                renderSubmissionChart(assignmentList);
+                renderTopPerformers(studentList, gradeList, attendanceList);
+                renderCourseStats(courseList, gradeList, attendanceList);
+                renderCourseStats(courseList, gradeList, attendanceList, instructorMap);
 
-                # Sample assignment data
-                self.assignments = [
-                    {"id": 1, "title": "Python Basics", "course_id": 1, "submissions": 5, "status": "Graded", "total_students": 5},
-                    {"id": 2, "title": "List Operations", "course_id": 1, "submissions": 4, "status": "Submitted", "total_students": 5},
-                    {"id": 3, "title": "Data Structures Project", "course_id": 2, "submissions": 3, "status": "Pending", "total_students": 4},
-                ]
+            } catch (err) {
+                console.error("Analytics load error:", err);
+            }
+        }
 
-            def calculate_metrics(self):
-                # Calculate total metrics
-                total_students = len(self.students)
-                total_courses = len(self.courses)
-                
-                # Calculate average GPA
-                if self.grades:
-                    grade_values = {"A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0}
-                    total_gpa = sum(grade_values.get(g["grade"], 0) for g in self.grades)
-                    avg_gpa = total_gpa / len(self.grades)
-                else:
-                    avg_gpa = 0
+        // ── Metrics ───────────────────────────────────────────────────────────────────
+        function renderMetrics(students, courses, grades, attData) {
+            document.getElementById("total-students").textContent = students.length;
+            document.getElementById("total-courses").textContent = courses.length;
 
-                # Calculate attendance rate
-                if self.attendance:
-                    present_count = sum(1 for a in self.attendance if a["status"] == "Present")
-                    attendance_rate = (present_count / len(self.attendance)) * 100
-                else:
-                    attendance_rate = 0
+            const avgScore = grades.length
+                ? (grades.reduce((s, g) => s + g.score, 0) / grades.length).toFixed(2)
+                : "0.00";
+            document.getElementById("avg-gpa").textContent = avgScore;
 
-                # Update metrics display
-                document.getElementById("total-students").textContent = str(total_students)
-                document.getElementById("total-courses").textContent = str(total_courses)
-                document.getElementById("avg-gpa").textContent = f"{avg_gpa:.2f}"
-                document.getElementById("avg-attendance").textContent = f"{attendance_rate:.1f}%"
+            const attRate = attData?.average_attendance_percentage
+                ? Math.round(attData.average_attendance_percentage) + "%"
+                : "0%";
+            document.getElementById("avg-attendance").textContent = attRate;
+        }
 
-            def render_charts(self):
-                # Grade Distribution Chart
-                grade_counts = {}
-                for grade in self.grades:
-                    g = grade["grade"]
-                    grade_counts[g] = grade_counts.get(g, 0) + 1
+        // ── Grade Distribution Chart ──────────────────────────────────────────────────
+        function renderGradeChart(grades) {
+            const buckets = { "A (90-100)": 0, "B (80-89)": 0, "C (70-79)": 0, "D (60-69)": 0, "F (<60)": 0 };
+            grades.forEach(g => {
+                const pct = (g.score / g.max_score) * 100;
+                if (pct >= 90) buckets["A (90-100)"]++;
+                else if (pct >= 80) buckets["B (80-89)"]++;
+                else if (pct >= 70) buckets["C (70-79)"]++;
+                else if (pct >= 60) buckets["D (60-69)"]++;
+                else buckets["F (<60)"]++;
+            });
 
-                grade_ctx = document.getElementById("gradeChart").getContext("2d")
-                grade_ctx.canvas.remove()
-                new_canvas = document.createElement("canvas")
-                new_canvas.id = "gradeChart"
-                document.querySelector(".chart-wrapper .chart-container").appendChild(new_canvas)
-                new_ctx = new_canvas.getContext("2d")
-                
-                grades_sorted = sorted(grade_counts.items())
-                chart_data_grade = {
-                    "labels": [g[0] for g in grades_sorted],
-                    "datasets": [{
-                        "label": "Grade Distribution",
-                        "data": [g[1] for g in grades_sorted],
-                        "backgroundColor": ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#6b7280"],
-                        "borderColor": ["#047857", "#1e40af", "#d97706", "#991b1b", "#374151"],
-                        "borderWidth": 2
+            destroyChart(gradeChart);
+            gradeChart = new Chart(document.getElementById("gradeChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(buckets),
+                    datasets: [{
+                        label: "Students",
+                        data: Object.values(buckets),
+                        backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#6b7280"],
+                        borderWidth: 2
                     }]
-                }
-                
-                Chart(new_ctx, {"type": "bar", "data": chart_data_grade, "options": {"responsive": True, "maintainAspectRatio": False, "scales": {"y": {"beginAtZero": True}}}})
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
 
-                # Course Enrollment Chart
-                course_enrollment = {}
-                for course in self.courses:
-                    course_enrollment[course["name"]] = course["max_students"]
+        // ── Course Enrollment Chart ───────────────────────────────────────────────────
+        function renderCourseChart(courses) {
+            destroyChart(courseChart);
+            courseChart = new Chart(document.getElementById("courseChart"), {
+                type: "bar",
+                data: {
+                    labels: courses.map(c => c.course_code),
+                    datasets: [
+                        {
+                            label: "Enrolled",
+                            data: courses.map(c => c.enrolled_count),
+                            backgroundColor: "#667eea"
+                        },
+                        {
+                            label: "Capacity",
+                            data: courses.map(c => c.max_seats),
+                            backgroundColor: "#e5e7eb"
+                        }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
 
-                course_ctx = document.getElementById("courseChart").getContext("2d")
-                chart_data_course = {
-                    "labels": list(course_enrollment.keys()),
-                    "datasets": [{
-                        "label": "Enrollment Capacity",
-                        "data": list(course_enrollment.values()),
-                        "backgroundColor": "#667eea",
-                        "borderColor": "#764ba2",
-                        "borderWidth": 2
+        // ── Attendance Chart ──────────────────────────────────────────────────────────
+        function renderAttendanceChart(attData) {
+            const dist = attData?.status_distribution || {};
+            const labels = Object.keys(dist).length ? Object.keys(dist) : ["No Data"];
+            const values = Object.keys(dist).length ? Object.values(dist) : [1];
+
+            destroyChart(attendanceChart);
+            attendanceChart = new Chart(document.getElementById("attendanceChart"), {
+                type: "doughnut",
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ["#10b981", "#ef4444", "#f59e0b", "#3b82f6"],
+                        borderWidth: 2
                     }]
-                }
-                
-                Chart(course_ctx, {"type": "bar", "data": chart_data_course, "options": {"responsive": True, "maintainAspectRatio": False, "scales": {"y": {"beginAtZero": True}}}})
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
 
-                # Attendance Trend Chart
-                attendance_trend = {"Present": 0, "Absent": 0, "Late": 0}
-                for att in self.attendance:
-                    attendance_trend[att["status"]] += 1
-
-                attendance_ctx = document.getElementById("attendanceChart").getContext("2d")
-                chart_data_attendance = {
-                    "labels": list(attendance_trend.keys()),
-                    "datasets": [{
-                        "label": "Attendance Status",
-                        "data": list(attendance_trend.values()),
-                        "backgroundColor": ["#10b981", "#ef4444", "#f59e0b"],
-                        "borderColor": ["#047857", "#991b1b", "#d97706"],
-                        "borderWidth": 2
+        // ── Submission Rate Chart ─────────────────────────────────────────────────────
+        function renderSubmissionChart(assignments) {
+            destroyChart(submissionChart);
+            submissionChart = new Chart(document.getElementById("submissionChart"), {
+                type: "line",
+                data: {
+                    labels: assignments.map(a => a.title.slice(0, 20)),
+                    datasets: [{
+                        label: "Max Score",
+                        data: assignments.map(a => a.max_score),
+                        backgroundColor: "#764ba2",
+                        borderColor: "#667eea",
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
                 }
-                
-                Chart(attendance_ctx, {"type": "doughnut", "data": chart_data_attendance, "options": {"responsive": True, "maintainAspectRatio": False}})
+            });
+        }
 
-                # Assignment Submission Chart
-                submission_data = {}
-                for assign in self.assignments:
-                    submission_rate = (assign["submissions"] / assign["total_students"]) * 100
-                    submission_data[assign["title"]] = submission_rate
+        // ── Top Performers Table ──────────────────────────────────────────────────────
+        function renderTopPerformers(students, grades, attendance) {
+            const tbody = document.getElementById("top-performers-body");
 
-                submission_ctx = document.getElementById("submissionChart").getContext("2d")
-                chart_data_submission = {
-                    "labels": list(submission_data.keys()),
-                    "datasets": [{
-                        "label": "Submission Rate %",
-                        "data": list(submission_data.values()),
-                        "backgroundColor": "#764ba2",
-                        "borderColor": "#667eea",
-                        "borderWidth": 2
-                    }]
+            if (!students.length || !grades.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No data available</td></tr>`;
+                return;
+            }
+
+            // Build per-student stats
+            const statsMap = {};
+            students.forEach(s => {
+                statsMap[s.id] = { name: s.full_name || s.student_id_number, scores: [], present: 0, total: 0 };
+            });
+
+            grades.forEach(g => {
+                if (statsMap[g.student_id]) {
+                    statsMap[g.student_id].scores.push((g.score / g.max_score) * 100);
                 }
-                
-                Chart(submission_ctx, {"type": "line", "data": chart_data_submission, "options": {"responsive": True, "maintainAspectRatio": False, "scales": {"y": {"beginAtZero": True, "max": 100}}}})
+            });
 
-            def render_tables(self):
-                self.render_top_performers()
-                self.render_course_stats()
+            attendance.forEach(a => {
+                if (statsMap[a.student_id]) {
+                    statsMap[a.student_id].total++;
+                    if (a.status === "present") statsMap[a.student_id].present++;
+                }
+            });
 
-            def render_top_performers(self):
-                # Calculate average grade per student
-                student_grades = {}
-                for grade in self.grades:
-                    student_name = grade["student_name"]
-                    if student_name not in student_grades:
-                        student_grades[student_name] = []
-                    grade_values = {"A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0}
-                    student_grades[student_name].append(grade_values.get(grade["grade"], 0))
+            const performers = Object.values(statsMap)
+                .filter(s => s.scores.length > 0)
+                .map(s => ({
+                    name: s.name,
+                    avgScore: s.scores.reduce((a, b) => a + b, 0) / s.scores.length,
+                    attRate: s.total > 0 ? (s.present / s.total * 100).toFixed(1) : "N/A",
+                    numGrades: s.scores.length
+                }))
+                .sort((a, b) => b.avgScore - a.avgScore)
+                .slice(0, 5);
 
-                # Calculate attendance per student
-                student_attendance = {}
-                for att in self.attendance:
-                    student_name = att["student_name"]
-                    if student_name not in student_attendance:
-                        student_attendance[student_name] = {"present": 0, "total": 0}
-                    student_attendance[student_name]["total"] += 1
-                    if att["status"] == "Present":
-                        student_attendance[student_name]["present"] += 1
+            if (!performers.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No grade data yet</td></tr>`;
+                return;
+            }
 
-                # Build performer list
-                performers = []
-                for student_name in student_grades:
-                    avg_grade = sum(student_grades[student_name]) / len(student_grades[student_name])
-                    attendance = student_attendance.get(student_name, {"present": 0, "total": 1})
-                    attendance_rate = (attendance["present"] / attendance["total"] * 100) if attendance["total"] > 0 else 0
-                    performers.append({
-                        "name": student_name,
-                        "avg_grade": avg_grade,
-                        "attendance_rate": attendance_rate,
-                        "assignments": sum(1 for a in self.assignments if a["submissions"] > 0)
-                    })
+            tbody.innerHTML = performers.map((p, i) => {
+                const cls = p.avgScore >= 90 ? "badge-a" : p.avgScore >= 80 ? "badge-b" : "badge-c";
+                return `
+            <tr>
+                <td><span class="rank-badge">${i + 1}</span></td>
+                <td>${p.name}</td>
+                <td><span class="${cls}">${p.avgScore.toFixed(1)}%</span></td>
+                <td>${p.attRate}%</td>
+                <td>${p.numGrades}</td>
+            </tr>`;
+            }).join("");
+        }
 
-                performers.sort(key=lambda x: x["avg_grade"], reverse=True)
+        // ── Course Stats Table ────────────────────────────────────────────────────────
+        function renderCourseStats(courses, grades, attendance, instructorMap = {}) {
+                const tbody = document.getElementById("course-stats-body");
 
-                # Render table
-                tbody = document.getElementById("top-performers-body")
-                tbody.innerHTML = ""
-                
-                for i, performer in enumerate(performers[:5]):
-                    grade_class = "badge-a" if performer["avg_grade"] >= 3.5 else "badge-b" if performer["avg_grade"] >= 3.0 else "badge-c"
-                    row = f"""
-                    <tr>
-                        <td><span class="rank-badge">{i + 1}</span></td>
-                        <td>{performer["name"]}</td>
-                        <td><span class="{grade_class}">{performer["avg_grade"]:.2f}</span></td>
-                        <td>{performer["attendance_rate"]:.1f}%</td>
-                        <td>{performer["assignments"]}</td>
-                    </tr>
-                    """
-                    tbody.innerHTML += row
+                if (!courses.length) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No courses available</td></tr>`;
+                    return;
+                }
 
-            def render_course_stats(self):
-                tbody = document.getElementById("course-stats-body")
-                tbody.innerHTML = ""
-                
-                for course in self.courses:
-                    # Count enrolled students
-                    enrolled = len([g for g in self.grades if g["course_id"] == course["id"]])
-                    
-                    # Average grade for course
-                    course_grades = [g for g in self.grades if g["course_id"] == course["id"]]
-                    if course_grades:
-                        grade_values = {"A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0}
-                        avg_grade = sum(grade_values.get(g["grade"], 0) for g in course_grades) / len(course_grades)
-                    else:
-                        avg_grade = 0
+                tbody.innerHTML = courses.map(c => {
+                    const cGrades = grades.filter(g => g.course_id === c.id);
+                    const avgScore = cGrades.length
+                        ? (cGrades.reduce((s, g) => s + (g.score / g.max_score) * 100, 0) / cGrades.length).toFixed(1)
+                        : "N/A";
 
-                    # Average attendance for course
-                    course_attendance = [a for a in self.attendance if a["course_id"] == course["id"]]
-                    if course_attendance:
-                        present_count = sum(1 for a in course_attendance if a["status"] == "Present")
-                        avg_attendance = (present_count / len(course_attendance)) * 100
-                    else:
-                        avg_attendance = 0
+                    const cAtt = attendance.filter(a => a.course_id === c.id);
+                    const attRate = cAtt.length
+                        ? (cAtt.filter(a => a.status === "present").length / cAtt.length * 100).toFixed(1)
+                        : "N/A";
 
-                    row = f"""
-                    <tr>
-                        <td><strong>{course["name"]}</strong></td>
-                        <td>{course["instructor"]}</td>
-                        <td>{enrolled}/{course["max_students"]}</td>
-                        <td><span class="badge-a">{avg_grade:.2f}</span></td>
-                        <td>{avg_attendance:.1f}%</td>
-                    </tr>
-                    """
-                    tbody.innerHTML += row
+                    const cls = avgScore !== "N/A" && parseFloat(avgScore) >= 80 ? "badge-a" : "badge-b";
 
-            def setup_event_listeners(self):
-                logout_btn = document.getElementById("logout-btn")
-                logout_btn.addEventListener("click", lambda e: self.handle_logout(e))
+                    // Use map to get name, fallback to short ID if not found
+                    const instructorName = instructorMap[c.instructor_id]
+                        || `Unknown (${c.instructor_id.slice(0, 8)}...)`;
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
-
-        AnalyticsDashboard()
-    </py-script>
+                    return `
+                        <tr>
+                            <td><strong>${c.course_code} - ${c.title}</strong></td>
+                            <td>${instructorName}</td>
+                            <td>${c.enrolled_count} / ${c.max_seats}</td>
+                            <td>${avgScore !== "N/A" ? `<span class="${cls}">${avgScore}%</span>` : "N/A"}</td>
+                            <td>${attRate !== "N/A" ? attRate + "%" : "N/A"}</td>
+                        </tr>`;
+                }).join("");
+            }
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            await loadAnalytics();
+        });
+    </script>
 </body>
 </html>

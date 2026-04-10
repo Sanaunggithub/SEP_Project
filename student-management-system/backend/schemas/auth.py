@@ -30,6 +30,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: RoleEnum = RoleEnum.student
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None

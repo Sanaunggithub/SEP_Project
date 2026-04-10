@@ -60,10 +60,16 @@ def get_attendance_patterns(
     from collections import Counter
     status_counts = Counter(a.status.value for a in attendance_data)
     
+    total = len(attendance_data)
+    present_count = status_counts.get("present", 0)
+    
+    # Calculate from present/total instead of relying on null column
+    attendance_percentage = (present_count / total * 100) if total > 0 else 0
+
     return {
-        "total_records": len(attendance_data),
+        "total_records": total,
         "status_distribution": dict(status_counts),
-        "average_attendance_percentage": sum(a.attendance_percentage or 0 for a in attendance_data) / len(attendance_data)
+        "average_attendance_percentage": attendance_percentage
     }
 
 @router.get("/grade-distribution")
@@ -131,7 +137,7 @@ def generate_report(
 @router.get("/reports", response_model=list[ReportSnapshotCreate])
 def list_reports(
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(check_role(["admin"]))
 ):

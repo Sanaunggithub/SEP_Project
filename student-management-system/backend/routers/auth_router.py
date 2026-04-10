@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from database import get_db
 from models.auth import User
 from fastapi.security import OAuth2PasswordRequestForm 
-from models.schemas import UserCreate, UserResponse, UserUpdate
+from schemas.auth import UserCreate, UserResponse, UserUpdate
 from core.security import create_access_token, hash_password, verify_password, get_current_user
 from core.config import settings
 
@@ -69,6 +69,22 @@ def update_profile(profile_update: UserUpdate, db: Session = Depends(get_db), cu
     db.commit()
     db.refresh(user)
     return user
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(
+    role: str | None = None,
+    skip: int = 0,
+    limit: int = Query(100, le=1000),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role.value != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    query = db.query(User).filter(User.is_active == True)
+    if role:
+        query = query.filter(User.role == role)
+    return query.offset(skip).limit(limit).all()
 
 @router.post("/upload-profile-picture")
 def upload_profile_picture(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

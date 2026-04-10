@@ -7,8 +7,6 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
     <style>
         :root { --primary: #667eea; --secondary: #764ba2; }
@@ -96,6 +94,7 @@
             </div>
 
             <div class="col-md-9 col-lg-10 main-content">
+                <div id="page-error" class="alert alert-danger d-none mb-3"></div>
                 <div class="page-header">
                     <h1>Manage Attendance</h1>
                     <button class="btn btn-add" id="record-attendance-btn">
@@ -131,47 +130,43 @@
         </div>
     </div>
 
+    <!-- Attendance Modal -->
     <div class="modal fade" id="attendanceModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-bottom">
-                    <h5 class="modal-title">Record Attendance</h5>
+                    <h5 class="modal-title" id="modalTitle">Record Attendance</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="modalError" class="alert alert-danger d-none mb-3"></div>
                     <form id="attendanceForm">
-                        <div class="mb-3">
-                            <label class="form-label">Student *</label>
-                            <select class="form-control" id="student" required>
-                                <option>Select Student</option>
-                                <option value="John Smith">John Smith</option>
-                                <option value="Sarah Johnson">Sarah Johnson</option>
-                                <option value="Michael Brown">Michael Brown</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Course *</label>
-                            <select class="form-control" id="course" required>
-                                <option>Select Course</option>
-                                <option value="CS101">CS101 - Python</option>
-                                <option value="CS201">CS201 - Data Structures</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Date *</label>
-                            <input type="date" class="form-control" id="date" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status *</label>
-                            <select class="form-control" id="status" required>
-                                <option value="Present">Present</option>
-                                <option value="Absent">Absent</option>
-                                <option value="Late">Late</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Remarks</label>
-                            <textarea class="form-control" id="remarks" rows="3" placeholder="Any additional notes..."></textarea>
+                        <div class="row g-2">
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Student *</label>
+                                <select class="form-control" id="attStudentId">
+                                    <option value="">Loading students...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label">Course *</label>
+                                <select class="form-control" id="attCourseId">
+                                    <option value="">Loading courses...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Date *</label>
+                                <input type="date" class="form-control" id="attDate">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Status *</label>
+                                <select class="form-control" id="attStatus">
+                                    <option value="present">Present</option>
+                                    <option value="absent">Absent</option>
+                                    <option value="late">Late</option>
+                                    <option value="excused">Excused</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -182,12 +177,18 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- Delete Modal -->
     <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
-                <div class="modal-header border-bottom"><h5 class="modal-title">Delete Record</h5></div>
-                <div class="modal-body"><p>Delete this attendance record? This action cannot be undone.</p></div>
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title">Delete Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete this attendance record?</p>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
@@ -197,118 +198,251 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class AttendanceManagement:
-            def __init__(self):
-                self.records = [
-                    {"id": 1, "student": "John Smith", "course": "CS101", "date": "2024-03-15", "status": "Present", "remarks": ""},
-                    {"id": 2, "student": "Sarah Johnson", "course": "CS101", "date": "2024-03-15", "status": "Present", "remarks": ""},
-                    {"id": 3, "student": "Michael Brown", "course": "CS101", "date": "2024-03-15", "status": "Late", "remarks": "Traffic delay"},
-                    {"id": 4, "student": "John Smith", "course": "CS201", "date": "2024-03-14", "status": "Absent", "remarks": "Sick leave"},
-                ]
-                self.current_id = None
-                self.setup_event_listeners()
-                self.load_attendance()
-                print("✓ Attendance Management initialized")
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/attendance.js"></script>
+    <script>
+        let allAttendance = [];
+        let allStudents = [];
+        let allCourses = [];
+        let editingAttId = null;
+        let deletingAttId = null;
 
-            def setup_event_listeners(self):
-                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
-                document.getElementById("record-attendance-btn").addEventListener("click", lambda e: self.open_add_modal())
-                document.getElementById("saveAttendanceBtn").addEventListener("click", lambda e: self.save_attendance())
-                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_record())
-                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search())
+        // ── Helpers ───────────────────────────────────────────────────────────────────
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            const m = bootstrap.Modal.getInstance(el);
+            if (m) m.hide();
+            setTimeout(() => {
+                document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+                document.body.classList.remove("modal-open");
+                document.body.style.removeProperty("padding-right");
+                document.body.style.removeProperty("overflow");
+            }, 300);
+        }
 
-            def load_attendance(self):
-                html = ""
-                for rec in self.records:
-                    badge_class = f"badge-{rec['status'].lower()}"
-                    html += f"""<tr>
-                        <td>{rec['student']}</td>
-                        <td>{rec['course']}</td>
-                        <td>{rec['date']}</td>
-                        <td><span class="{badge_class}">{rec['status']}</span></td>
-                        <td>{rec['remarks']}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="AttendanceManagement_instance.edit({rec['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="AttendanceManagement_instance.open_delete({rec['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("attendance-list").innerHTML = html
+        function showModalError(msg) {
+            const el = document.getElementById("modalError");
+            el.textContent = msg;
+            el.classList.remove("d-none");
+            setTimeout(() => el.classList.add("d-none"), 5000);
+        }
 
-            def open_add_modal(self):
-                self.current_id = None
-                document.getElementById("attendanceForm").reset()
-                document.getElementById("date").valueAsDate = __import__("datetime").datetime.now()
-                from bootstrap import Modal
-                Modal(document.getElementById("attendanceModal")).show()
+        function statusBadge(status) {
+            const map = {
+                present: "badge-present",
+                absent: "badge-absent",
+                late: "badge-late",
+                excused: "badge bg-secondary text-white"
+            };
+            return `<span class="${map[status] || 'badge bg-secondary'}">${status}</span>`;
+        }
 
-            def edit(self, rid):
-                rec = next((r for r in self.records if r['id'] == rid), None)
-                if rec:
-                    self.current_id = rid
-                    document.getElementById("student").value = rec['student']
-                    document.getElementById("course").value = rec['course']
-                    document.getElementById("date").value = rec['date']
-                    document.getElementById("status").value = rec['status']
-                    document.getElementById("remarks").value = rec['remarks']
-                    from bootstrap import Modal
-                    Modal(document.getElementById("attendanceModal")).show()
+        // ── Load ──────────────────────────────────────────────────────────────────────
+        async function loadDropdowns() {
+            try {
+                const [students, courses] = await Promise.all([
+                    apiFetch("/students/?skip=0&limit=1000"),
+                    apiFetch("/courses/?skip=0&limit=1000")
+                ]);
+                allStudents = students;
+                allCourses = courses;
 
-            def save_attendance(self):
-                student = document.getElementById("student").value
-                course = document.getElementById("course").value
-                date = document.getElementById("date").value
-                status = document.getElementById("status").value
-                remarks = document.getElementById("remarks").value
-                
-                if self.current_id:
-                    r = next((x for x in self.records if x['id'] == self.current_id), None)
-                    if r:
-                        r.update({"student": student, "course": course, "date": date, "status": status, "remarks": remarks})
-                else:
-                    new_id = max([x['id'] for x in self.records]) + 1 if self.records else 1
-                    self.records.append({"id": new_id, "student": student, "course": course, "date": date, "status": status, "remarks": remarks})
-                
-                self.load_attendance()
-                from bootstrap import Modal
-                Modal(document.getElementById("attendanceModal")).hide()
+                document.getElementById("attStudentId").innerHTML =
+                    `<option value="">Select Student</option>` +
+                    students.map(s => `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`).join("");
 
-            def open_delete(self, rid):
-                self.current_id = rid
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).show()
+                document.getElementById("attCourseId").innerHTML =
+                    `<option value="">Select Course</option>` +
+                    courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.title}</option>`).join("");
+            } catch (err) {
+                console.error("Dropdown error:", err);
+            }
+        }
 
-            def delete_record(self):
-                self.records = [r for r in self.records if r['id'] != self.current_id]
-                self.load_attendance()
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).hide()
+        async function loadAttendance() {
+            try {
+                const tbody = document.getElementById("attendance-list");
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
+                allAttendance = await apiFetch("/attendance/?skip=0&limit=100");
+                renderAttendance(allAttendance);
+            } catch (err) {
+                document.getElementById("attendance-list").innerHTML =
+                    `<tr><td colspan="6" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
 
-            def search(self):
-                term = document.getElementById("search-input").value.lower()
-                filtered = [r for r in self.records if term in r['student'].lower() or term in r['course'].lower()]
-                html = ""
-                for rec in filtered:
-                    badge_class = f"badge-{rec['status'].lower()}"
-                    html += f"""<tr>
-                        <td>{rec['student']}</td>
-                        <td>{rec['course']}</td>
-                        <td>{rec['date']}</td>
-                        <td><span class="{badge_class}">{rec['status']}</span></td>
-                        <td>{rec['remarks']}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="AttendanceManagement_instance.edit({rec['id']})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-delete" onclick="AttendanceManagement_instance.open_delete({rec['id']})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>"""
-                document.getElementById("attendance-list").innerHTML = html
+        // ── Render ────────────────────────────────────────────────────────────────────
+        function renderAttendance(records) {
+            const tbody = document.getElementById("attendance-list");
+            if (!records || records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+                <i class="bi bi-inbox"></i><p>No attendance records</p></td></tr>`;
+                return;
+            }
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
+            const studentMap = {};
+            allStudents.forEach(s => studentMap[s.id] = s.full_name || s.student_id_number);
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
 
-        AttendanceManagement_instance = AttendanceManagement()
-    </py-script>
+            tbody.innerHTML = records.map(r => `
+            <tr>
+                <td>${studentMap[r.student_id] || r.student_id}</td>
+                <td>${courseMap[r.course_id] || `<span class="text-muted fst-italic">Unknown (${r.course_id.slice(0, 8)}...)</span>`}</td>
+                <td>${r.date}</td>
+                <td>${statusBadge(r.status)}</td>
+                <td>${r.attendance_percentage != null ? r.attendance_percentage + "%" : "-"}</td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="openEditModal('${r.id}')">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${r.id}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+        }
+
+        // ── Search + filter ───────────────────────────────────────────────────────────
+        function filterAttendance() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const dateFilter = document.getElementById("date-filter").value;
+
+            const studentMap = {};
+            allStudents.forEach(s => studentMap[s.id] = (s.full_name || "").toLowerCase());
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
+
+            const filtered = allAttendance.filter(r => {
+                const matchText =
+                    (studentMap[r.student_id] || "").includes(term) ||
+                    (courseMap[r.course_id] || "").includes(term) ||
+                    (r.status || "").toLowerCase().includes(term);
+                const matchDate = !dateFilter || r.date === dateFilter;
+                return matchText && matchDate;
+            });
+            renderAttendance(filtered);
+        }
+
+        // ── Modals ────────────────────────────────────────────────────────────────────
+        function openAddModal() {
+            editingAttId = null;
+            document.getElementById("attendanceForm").reset();
+            document.getElementById("modalTitle").textContent = "Record Attendance";
+            document.getElementById("modalError").classList.add("d-none");
+            document.getElementById("attDate").value = new Date().toISOString().split("T")[0];
+            document.getElementById("attStudentId").disabled = false;
+            document.getElementById("attCourseId").disabled = false;
+            new bootstrap.Modal(document.getElementById("attendanceModal")).show();
+        }
+
+        function openEditModal(attId) {
+            editingAttId = attId;
+            const r = allAttendance.find(r => r.id === attId);
+            if (!r) return;
+
+            document.getElementById("modalTitle").textContent = "Edit Attendance";
+            document.getElementById("modalError").classList.add("d-none");
+
+            document.getElementById("attStudentId").value = r.student_id;
+            document.getElementById("attCourseId").value = r.course_id;
+            document.getElementById("attStudentId").disabled = true;
+            document.getElementById("attCourseId").disabled = true;
+            document.getElementById("attDate").value = r.date;
+            document.getElementById("attDate").disabled = true;
+            document.getElementById("attStatus").value = r.status;
+
+            new bootstrap.Modal(document.getElementById("attendanceModal")).show();
+        }
+
+        function openDeleteModal(attId) {
+            deletingAttId = attId;
+            new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+        }
+
+        // ── Save ──────────────────────────────────────────────────────────────────────
+        async function saveAttendance() {
+            const btn = document.getElementById("saveAttendanceBtn");
+            document.getElementById("modalError").classList.add("d-none");
+
+            const studentId = document.getElementById("attStudentId").value;
+            const courseId = document.getElementById("attCourseId").value;
+            const date = document.getElementById("attDate").value;
+            const attStatus = document.getElementById("attStatus").value;
+
+            if (!editingAttId && !studentId) { showModalError("Please select a student"); return; }
+            if (!editingAttId && !courseId) { showModalError("Please select a course"); return; }
+            if (!date) { showModalError("Please select a date"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Saving...`;
+
+            try {
+                if (editingAttId) {
+                    await apiFetch(`/attendance/${editingAttId}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ status: attStatus })
+                    });
+                } else {
+                    await apiFetch("/attendance/", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            student_id: studentId,
+                            course_id: courseId,
+                            date: date,
+                            status: attStatus
+                        })
+                    });
+                }
+
+                closeModal("attendanceModal");
+                await loadAttendance();
+
+            } catch (err) {
+                showModalError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Save";
+            }
+        }
+
+        // ── Delete ────────────────────────────────────────────────────────────────────
+        async function confirmDelete() {
+            const btn = document.getElementById("confirmDeleteBtn");
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Deleting...`;
+            try {
+                await apiFetch(`/attendance/${deletingAttId}`, { method: "DELETE" });
+                closeModal("deleteConfirmModal");
+                await loadAttendance();
+            } catch (err) {
+                closeModal("deleteConfirmModal");
+                const errDiv = document.getElementById("page-error");
+                if (errDiv) { errDiv.textContent = err.message; errDiv.classList.remove("d-none"); }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Delete";
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
+
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            document.getElementById("record-attendance-btn").addEventListener("click", () => openAddModal());
+            document.getElementById("saveAttendanceBtn").addEventListener("click", () => saveAttendance());
+            document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+            document.getElementById("search-input").addEventListener("keyup", () => filterAttendance());
+            document.getElementById("date-filter").addEventListener("change", () => filterAttendance());
+
+            await loadDropdowns();
+            await loadAttendance();
+        });
+    </script>
 </body>
 </html>

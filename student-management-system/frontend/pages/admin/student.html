@@ -107,7 +107,7 @@
 
                 <div class="dashboard-card">
                     <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="Search students by name or email...">
+                        <input type="text" id="search-input" placeholder="Search students by name, id, dept ...">
                         <button class="btn btn-outline-secondary" id="filter-btn">
                             <i class="bi bi-funnel"></i> Filter
                         </button>
@@ -151,34 +151,158 @@
                     <h5 class="modal-title" id="modalTitle">Add Student</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                     <form id="studentForm">
-                        <div class="mb-3">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" class="form-control" id="name" required>
+                
+                        <!-- ── ADD: user account + student profile ── -->
+                        <div id="userFieldsSection">
+                            <p class="fw-bold text-primary mb-3 border-bottom pb-2">
+                                <i class="bi bi-person-plus"></i> New Student Account
+                            </p>
+                            <div class="row g-2">
+                                <div class="col-12 mb-1">
+                                    <label class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="newFullName" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="newEmail" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Password *</label>
+                                    <input type="password" class="form-control" id="newPassword" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Phone *</label>
+                                    <input type="tel" class="form-control" id="newPhone" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Date of Birth *</label>
+                                    <input type="date" class="form-control" id="newDob" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Gender *</label>
+                                    <select class="form-control" id="newGender" required>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Student ID Number *</label>
+                                    <input type="text" class="form-control" id="newStudentId" placeholder="e.g. STD003" required>
+                                </div>
+                                <div class="col-12 mb-1">
+                                    <label class="form-label">Address *</label>
+                                    <input type="text" class="form-control" id="newAddress" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Emergency Contact Name *</label>
+                                    <input type="text" class="form-control" id="newEcName" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Emergency Contact Phone *</label>
+                                    <input type="tel" class="form-control" id="newEcPhone" required>
+                                </div>
+                
+                                <div class="col-12 mt-2 mb-1">
+                                    <p class="fw-bold text-primary border-bottom pb-2">
+                                        <i class="bi bi-mortarboard"></i> Academic Info
+                                    </p>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Department *</label>
+                                    <input type="text" class="form-control" id="newDepartment" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Program *</label>
+                                    <input type="text" class="form-control" id="newProgram" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Year Level *</label>
+                                    <select class="form-control" id="newYearLevel" required>
+                                        <option value="1">Year 1</option>
+                                        <option value="2">Year 2</option>
+                                        <option value="3">Year 3</option>
+                                        <option value="4">Year 4</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Enrollment Date *</label>
+                                    <input type="date" class="form-control" id="newEnrollDate" required>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Name</label>
+                                    <input type="text" class="form-control" id="newGuardianName">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Phone</label>
+                                    <input type="tel" class="form-control" id="newGuardianPhone">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Email</label>
+                                    <input type="email" class="form-control" id="newGuardianEmail">
+                                </div>
+                                <div class="col-md-6 mb-1 d-flex align-items-end">
+                                    <div class="form-check ms-2">
+                                        <input type="checkbox" class="form-check-input" id="newScholarship">
+                                        <label class="form-check-label">Scholarship</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Phone *</label>
-                            <input type="tel" class="form-control" id="phone" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Department *</label>
-                            <select class="form-control" id="department" required>
-                                <option value="">Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Business">Business</option>
-                                <option value="Arts">Arts</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Enrollment Date *</label>
-                            <input type="date" class="form-control" id="enrollmentDate" required>
-                        </div>
+                
+                        <!-- ── EDIT: student profile fields only ── -->
+                        <div id="editFieldsSection" style="display:none;">
+                            <div class="row g-2">
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Department</label>
+                                    <input type="text" class="form-control" id="editDepartment">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Program</label>
+                                    <input type="text" class="form-control" id="editProgram">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Year Level</label>
+                                    <select class="form-control" id="editYearLevel">
+                                        <option value="1">Year 1</option>
+                                        <option value="2">Year 2</option>
+                                        <option value="3">Year 3</option>
+                                        <option value="4">Year 4</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Academic Status</label>
+                                    <select class="form-control" id="editAcademicStatus">
+                                        <option value="active">Active</option>
+                                        <option value="probation">Probation</option>
+                                        <option value="graduated">Graduated</option>
+                                        <option value="dropped">Dropped</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">GPA</label>
+                                    <input type="number" class="form-control" id="editGpa" step="0.01" min="0" max="4">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Name</label>
+                                    <input type="text" class="form-control" id="editGuardianName">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Phone</label>
+                                    <input type="tel" class="form-control" id="editGuardianPhone">
+                                </div>
+                                <div class="col-md-6 mb-1">
+                                    <label class="form-label">Guardian Email</label>
+                                    <input type="email" class="form-control" id="editGuardianEmail">
+                                </div>
+                                <div class="col-12 mb-1">
+                                    <label class="form-label">Notes</label>
+                                    <textarea class="form-control" id="editNotes" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>               
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -209,148 +333,210 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <py-script>
-        class StudentManagement:
-            def __init__(self):
-                self.students = [
-                    {"id": 1, "name": "John Smith", "email": "john@example.com", "phone": "555-0101", "department": "Computer Science", "enrollmentDate": "2024-01-15"},
-                    {"id": 2, "name": "Sarah Johnson", "email": "sarah@example.com", "phone": "555-0102", "department": "Engineering", "enrollmentDate": "2024-01-20"},
-                    {"id": 3, "name": "Michael Brown", "email": "michael@example.com", "phone": "555-0103", "department": "Business", "enrollmentDate": "2024-02-01"},
-                    {"id": 4, "name": "Emily Davis", "email": "emily@example.com", "phone": "555-0104", "department": "Computer Science", "enrollmentDate": "2024-02-10"},
-                    {"id": 5, "name": "David Wilson", "email": "david@example.com", "phone": "555-0105", "department": "Arts", "enrollmentDate": "2024-02-15"},
-                ]
-                self.current_student_id = None
-                self.check_auth()
-                self.setup_event_listeners()
-                self.load_students()
-                print("✓ Student Management initialized")
+    <!-- Remove entire <py-script>...</py-script> block -->
+    <!-- Add these before </body> -->
+    
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/student.js"></script>
+    <script>
+        let allStudents = [];
+        let editingStudentId = null;
 
-            def check_auth(self):
-                token = document.localStorage.getItem("token")
-                role = document.localStorage.getItem("role")
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!requireAuth("admin")) return;
 
-            def setup_event_listeners(self):
-                document.getElementById("logout-btn").addEventListener("click", lambda e: self.handle_logout(e))
-                document.getElementById("add-student-btn").addEventListener("click", lambda e: self.open_add_modal())
-                document.getElementById("saveStudentBtn").addEventListener("click", lambda e: self.save_student())
-                document.getElementById("confirmDeleteBtn").addEventListener("click", lambda e: self.delete_student())
-                document.getElementById("search-input").addEventListener("keyup", lambda e: self.search_students())
-                document.getElementById("filter-btn").addEventListener("click", lambda e: self.show_filter())
+            // Logout
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
 
-            def load_students(self):
-                self.render_students(self.students)
+            // Add student button
+            document.getElementById("add-student-btn").addEventListener("click", () => openAddModal());
 
-            def render_students(self, students_list):
-                table_body = document.getElementById("students-list")
-                if not students_list:
-                    table_body.innerHTML = '<tr><td colspan="7" class="empty-state"><div><i class="bi bi-inbox"></i><p>No students found</p></div></td></tr>'
-                    return
-                
-                html = ""
-                for student in students_list:
-                    html += f"""
+            // Save button
+            document.getElementById("saveStudentBtn").addEventListener("click", () => saveStudent());
+
+            // Delete confirm button
+            document.getElementById("confirmDeleteBtn").addEventListener("click", () => confirmDelete());
+
+            // Search
+            document.getElementById("search-input").addEventListener("keyup", () => searchStudents());
+
+            await loadStudents();
+        });
+
+        async function loadStudents() {
+            try {
+                const tbody = document.getElementById("students-list");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
+
+                allStudents = await apiFetch("/students/?skip=0&limit=100");
+                renderStudents(allStudents);
+            } catch (err) {
+                document.getElementById("students-list").innerHTML =
+                    `<tr><td colspan="7" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+
+        function renderStudents(students) {
+                const tbody = document.getElementById("students-list");
+                if (!students || students.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+            <div><i class="bi bi-inbox"></i><p>No students found</p></div></td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = students.map(s => `
                     <tr>
-                        <td>#{student['id']}</td>
-                        <td><strong>{student['name']}</strong></td>
-                        <td>{student['email']}</td>
-                        <td>{student['phone']}</td>
-                        <td>{student['department']}</td>
-                        <td>{student['enrollmentDate']}</td>
+                        <td>${s.student_id_number || "-"}</td>
+                        <td><strong>${s.full_name || "-"}</strong></td>
+                        <td>${s.email || "-"}</td>
+                        <td>${s.phone_number || "-"}</td>
+                        <td>${s.department || "-"}</td>
+                        <td>${s.enrollment_date || "-"}</td>
                         <td>
-                            <button class="btn btn-sm btn-edit" onclick="StudentManagement_instance.edit_student({student['id']})">
+                            <button class="btn btn-sm btn-edit" onclick="openEditModal('${s.id}')">
                                 <i class="bi bi-pencil"></i> Edit
                             </button>
-                            <button class="btn btn-sm btn-delete" onclick="StudentManagement_instance.open_delete_modal({student['id']})">
+                            <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${s.id}')">
                                 <i class="bi bi-trash"></i> Delete
                             </button>
                         </td>
                     </tr>
-                    """
-                table_body.innerHTML = html
+                `).join("");
+            }
 
-            def open_add_modal(self):
-                self.current_student_id = None
-                document.getElementById("studentForm").reset()
-                document.getElementById("modalTitle").textContent = "Add Student"
-                modal = document.getElementById("studentModal")
-                bootstrap_modal = __import__("bootstrap").Modal(modal)
-                bootstrap_modal.show()
+        function searchStudents() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.full_name || "").toLowerCase().includes(term) ||
+                (s.student_id_number || "").toLowerCase().includes(term) ||
+                (s.department || "").toLowerCase().includes(term)
+            );
+            renderStudents(filtered);
+        }
 
-            def edit_student(self, student_id):
-                student = next((s for s in self.students if s['id'] == student_id), None)
-                if student:
-                    self.current_student_id = student_id
-                    document.getElementById("name").value = student['name']
-                    document.getElementById("email").value = student['email']
-                    document.getElementById("phone").value = student['phone']
-                    document.getElementById("department").value = student['department']
-                    document.getElementById("enrollmentDate").value = student['enrollmentDate']
-                    document.getElementById("modalTitle").textContent = "Edit Student"
-                    from bootstrap import Modal
-                    modal = Modal(document.getElementById("studentModal"))
-                    modal.show()
+        function openEditModal(studentId) {
+                editingStudentId = studentId;
+                const s = allStudents.find(s => s.id === studentId);
+                if (!s) return;
 
-            def save_student(self):
-                name = document.getElementById("name").value
-                email = document.getElementById("email").value
-                phone = document.getElementById("phone").value
-                department = document.getElementById("department").value
-                enrollmentDate = document.getElementById("enrollmentDate").value
-                
-                if not all([name, email, phone, department, enrollmentDate]):
-                    alert("Please fill in all fields")
-                    return
-                
-                if self.current_student_id:
-                    for student in self.students:
-                        if student['id'] == self.current_student_id:
-                            student['name'] = name
-                            student['email'] = email
-                            student['phone'] = phone
-                            student['department'] = department
-                            student['enrollmentDate'] = enrollmentDate
-                else:
-                    new_id = max([s['id'] for s in self.students]) + 1 if self.students else 1
-                    self.students.append({
-                        "id": new_id,
-                        "name": name,
-                        "email": email,
-                        "phone": phone,
-                        "department": department,
-                        "enrollmentDate": enrollmentDate
-                    })
-                
-                self.render_students(self.students)
-                from bootstrap import Modal
-                Modal(document.getElementById("studentModal")).hide()
-                alert("Student saved successfully!")
+                document.getElementById("modalTitle").textContent = "Edit Student";
+                document.getElementById("userFieldsSection").style.display = "none";
+                document.getElementById("editFieldsSection").style.display = "block";
 
-            def open_delete_modal(self, student_id):
-                self.current_student_id = student_id
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).show()
+                document.getElementById("editDepartment").value = s.department || "";
+                document.getElementById("editProgram").value = s.program || "";
+                document.getElementById("editYearLevel").value = s.year_level || "1";
+                document.getElementById("editAcademicStatus").value = s.academic_status || "active";
+                document.getElementById("editGpa").value = s.gpa || "";
+                document.getElementById("editGuardianName").value = s.guardian_name || "";
+                document.getElementById("editGuardianPhone").value = s.guardian_phone || "";
+                document.getElementById("editGuardianEmail").value = s.guardian_email || "";
+                document.getElementById("editNotes").value = s.notes || "";
 
-            def delete_student(self):
-                self.students = [s for s in self.students if s['id'] != self.current_student_id]
-                self.render_students(self.students)
-                from bootstrap import Modal
-                Modal(document.getElementById("deleteConfirmModal")).hide()
-                alert("Student deleted successfully!")
+                new bootstrap.Modal(document.getElementById("studentModal")).show();
+            }
 
-            def search_students(self):
-                search_term = document.getElementById("search-input").value.lower()
-                filtered = [s for s in self.students if search_term in s['name'].lower() or search_term in s['email'].lower()]
-                self.render_students(filtered)
+            function openAddModal() {
+                editingStudentId = null;
+                document.getElementById("studentForm").reset();
+                document.getElementById("modalTitle").textContent = "Add Student";
+                document.getElementById("userFieldsSection").style.display = "block";  // show user fields
+                document.getElementById("editFieldsSection").style.display = "none";   // hide edit fields
+                new bootstrap.Modal(document.getElementById("studentModal")).show();
+            }
 
-            def show_filter(self):
-                alert("Filter functionality coming soon")
+        async function saveStudent() {
+                const btn = document.getElementById("saveStudentBtn");
+                btn.disabled = true;
+                btn.textContent = "Saving...";
 
-            def handle_logout(self, event):
-                document.localStorage.removeItem("token")
-                document.localStorage.removeItem("role")
-                window.location.href = "../login.html"
+                try {
+                    if (editingStudentId) {
+                        // UPDATE — uses StudentUpdate schema
+                        await apiFetch(`/students/${editingStudentId}`, {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                department: document.getElementById("editDepartment").value || undefined,
+                                program: document.getElementById("editProgram").value || undefined,
+                                year_level: parseInt(document.getElementById("editYearLevel").value) || undefined,
+                                academic_status: document.getElementById("editAcademicStatus").value || undefined,
+                                gpa: parseFloat(document.getElementById("editGpa").value) || undefined,
+                                guardian_name: document.getElementById("editGuardianName").value || undefined,
+                                guardian_phone: document.getElementById("editGuardianPhone").value || undefined,
+                                guardian_email: document.getElementById("editGuardianEmail").value || undefined,
+                                notes: document.getElementById("editNotes").value || undefined
+                            })
+                        });
 
-        StudentManagement_instance = StudentManagement()
-    </py-script>
+                    } else {
+                        // Step 1: register user account
+                        const newUser = await apiFetch("/auth/register", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                full_name: document.getElementById("newFullName").value,
+                                email: document.getElementById("newEmail").value,
+                                password: document.getElementById("newPassword").value,
+                                role: "student",
+                                phone_number: document.getElementById("newPhone").value,
+                                date_of_birth: document.getElementById("newDob").value,
+                                gender: document.getElementById("newGender").value,
+                                address: document.getElementById("newAddress").value,
+                                emergency_contact_name: document.getElementById("newEcName").value,
+                                emergency_contact_phone: document.getElementById("newEcPhone").value
+                            })
+                        });
+
+                        // Step 2: create student profile with exact StudentCreate fields
+                        await apiFetch("/students/", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                user_id: newUser.id,
+                                student_id_number: document.getElementById("newStudentId").value,
+                                enrollment_date: document.getElementById("newEnrollDate").value,
+                                program: document.getElementById("newProgram").value,
+                                department: document.getElementById("newDepartment").value,
+                                year_level: parseInt(document.getElementById("newYearLevel").value),
+                                scholarship_status: document.getElementById("newScholarship").checked,
+                                guardian_name: document.getElementById("newGuardianName").value || null,
+                                guardian_phone: document.getElementById("newGuardianPhone").value || null,
+                                guardian_email: document.getElementById("newGuardianEmail").value || null
+                            })
+                        });
+                    }
+
+                    bootstrap.Modal.getInstance(document.getElementById("studentModal")).hide();
+                    await loadStudents();
+
+                } catch (err) {
+                    alert("Error: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Save";
+                }
+            }
+
+        let deletingStudentId = null;
+        function openDeleteModal(studentId) {
+            deletingStudentId = studentId;
+            new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+        }
+
+        async function confirmDelete() {
+            const btn = document.getElementById("confirmDeleteBtn");
+            btn.disabled = true;
+            btn.textContent = "Deleting...";
+            try {
+                await apiFetch(`/students/${deletingStudentId}`, { method: "DELETE" });
+                bootstrap.Modal.getInstance(document.getElementById("deleteConfirmModal")).hide();
+                await loadStudents();
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Delete";
+            }
+        }
+    </script>
 </body>
 </html>

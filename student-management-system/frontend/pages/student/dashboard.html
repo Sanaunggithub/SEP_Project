@@ -564,68 +564,132 @@
             return `<span class="due-ok"><i class="bi bi-check-circle"></i> ${due.toLocaleDateString()}</span>`;
         }
 
+        function calculateGPA(grades) {
+                if (!grades || grades.length === 0) return null;
+                const gpaMap = { A: 4, B: 3, C: 2, D: 1, F: 0 };
+
+                function letterFromPct(pct) {
+                    if (pct >= 90) return "A";
+                    if (pct >= 80) return "B";
+                    if (pct >= 70) return "C";
+                    if (pct >= 60) return "D";
+                    return "F";
+                }
+
+                const total = grades.reduce((sum, g) => {
+                    const pct = (g.score / g.max_score) * 100;
+                    return sum + (gpaMap[letterFromPct(pct)] || 0);
+                }, 0);
+
+                return (total / grades.length).toFixed(2);
+            }
+
+        
         async function loadDashboard() {
-            if (!requireAuth("student")) return;
+                if (!requireAuth("student")) return;
 
-            try {
-                const studentId = localStorage.getItem("student_id");
-                if (!studentId) throw new Error("Student ID not found. Please login again.");
+                try {
+                    const studentId = localStorage.getItem("student_id");
+                    if (!studentId) throw new Error("Student ID not found. Please login again.");
 
-                // Fetch all data in parallel
-                const [student, courses, grades, attendance, assignments] = await Promise.all([
-                    apiFetch(`/students/${studentId}`),
-                    apiFetch(`/students/${studentId}/courses`),
-                    apiFetch(`/students/${studentId}/grades`),
-                    apiFetch(`/students/${studentId}/attendance`),
-                    apiFetch("/assignments/?skip=0&limit=100")
-                ]);
+                    const [studentRes, coursesRes, gradesRes, attendanceRes, assignmentsRes, submissionsRes] =
+                        await Promise.allSettled([
+                            apiFetch(`/students/${studentId}`),
+                            apiFetch(`/students/${studentId}/courses`),
+                            apiFetch(`/students/${studentId}/grades`),
+                            apiFetch(`/students/${studentId}/attendance`),
+                            apiFetch("/assignments/?skip=0&limit=1000"),
+                            apiFetch(`/students/${studentId}/submissions`)
+                        ]);
 
-                // ── Welcome banner ──
-                document.getElementById("student-name").textContent =
-                    student.full_name || "Student";
-                document.getElementById("student-info").textContent =
-                    `${student.program || ""} · Year ${student.year_level || ""} · ${student.department || ""}`;
+                    const student = studentRes.status === "fulfilled" ? studentRes.value : null;
+                    const courses = coursesRes.status === "fulfilled" ? coursesRes.value : [];
+                    const grades = gradesRes.status === "fulfilled" ? gradesRes.value : [];
+                    const attendance = attendanceRes.status === "fulfilled" ? attendanceRes.value : [];
+                    const assignments = assignmentsRes.status === "fulfilled" ? assignmentsRes.value : [];
+                    const submissions = submissionsRes.status === "fulfilled" ? submissionsRes.value : [];
 
-                // ── Stats ──
-                document.getElementById("student-gpa").textContent =
-                    student.gpa != null ? student.gpa.toFixed(2) : "N/A";
-                document.getElementById("course-count").textContent =
-                    Array.isArray(courses) ? courses.length : 0;
+                    if (!student) throw new Error("Could not load student profile.");
 
-                const attList = Array.isArray(attendance) ? attendance : [];
-                const presentCount = attList.filter(a => a.status === "present").length;
-                const attRate = attList.length
-                    ? Math.round((presentCount / attList.length) * 100) + "%"
-                    : "N/A";
-                document.getElementById("attendance-rate").textContent = attRate;
+                    // ── Enrolled course IDs ──
+                    const enrolledCourseIds = Array.isArray(courses)
+                        ? courses.map(e => e.course_id || e.course?.id).filter(Boolean)
+                        : [];
 
-                const assignList = Array.isArray(assignments) ? assignments : [];
-                const pending = assignList.filter(a => new Date(a.due_date) > new Date()).length;
-                document.getElementById("pending-count").textContent = pending;
-                
-                // ── Courses ──
-                const coursesEl = document.getElementById("courses-list");
-                if (courses && courses.length > 0) {
-                    coursesEl.innerHTML = courses.map(c => `
+                    // ── Submitted assignment IDs ──
+                    const submittedIds = new Set(
+                        Array.isArray(submissions)
+                            ? submissions.map(s => String(s.assignment_id))
+                            : []
+                    );
+
+                    // ── Welcome banner ──
+                    document.getElementById("student-name").textContent =
+                        student.full_name || "Student";
+                    document.getElementById("student-info").textContent =
+                        `${student.program || ""} · Year ${student.year_level || ""} · ${student.department || ""}`;
+
+                    // ── GPA — use ALL grades, same logic as my-grades.html ──
+                    const gradeList = Array.isArray(grades) ? grades : [];
+                    const calculatedGPA = calculateGPA(gradeList);
+                    document.getElementById("student-gpa").textContent =
+                        calculatedGPA !== null ? calculatedGPA : "N/A";
+
+                    // ── Enrolled courses count ──
+                    document.getElementById("course-count").textContent =
+                        Array.isArray(courses) ? courses.length : 0;
+
+                    // ── Attendance rate ──
+                    const attList = Array.isArray(attendance) ? attendance : [];
+                    const presentCount = attList.filter(a => a.status === "present").length;
+                    const attRate = attList.length
+                        ? Math.round((presentCount / attList.length) * 100) + "%"
+                        : "N/A";
+                    document.getElementById("attendance-rate").textContent = attRate;
+
+                    // ── Pending assignments — enrolled only, not submitted, not overdue ──
+                    const assignList = Array.isArray(assignments) ? assignments : [];
+                    const pending = assignList
+                        .filter(a => enrolledCourseIds.includes(a.course_id))
+                        .filter(a => new Date(a.due_date) > new Date())
+                        .filter(a => !submittedIds.has(String(a.id)))
+                        .length;
+                    document.getElementById("pending-count").textContent = pending;
+
+                    // ── Courses section ──
+                    const coursesEl = document.getElementById("courses-list");
+                    if (Array.isArray(courses) && courses.length > 0) {
+                        coursesEl.innerHTML = courses.map(c => {
+                            const courseStatus = c.course?.status || "active";
+                            const badgeStyle = {
+                                active: "background:#ede9fe;color:var(--primary)",
+                                completed: "background:#e0e7ff;color:#3730a3",
+                                cancelled: "background:#fee2e2;color:#991b1b"
+                            }[courseStatus] || "background:#ede9fe;color:var(--primary)";
+
+                            return `
                 <div class="course-item">
                     <div>
-                        <div class="fw-semibold text-dark">${c.course?.title || "Unknown"}</div>
+                        <div class="fw-semibold text-dark">
+                            ${c.course?.title || "Unknown"}
+                        </div>
                         <div class="text-muted" style="font-size:13px;">
                             ${c.course?.course_code || ""} · ${c.course?.semester || ""}
                         </div>
                     </div>
-                    <span class="course-badge">${c.status || "enrolled"}</span>
-                </div>
-            `).join("");
-                } else {
-                    coursesEl.innerHTML = `<div class="empty-msg">No courses enrolled yet</div>`;
-                }
+                    <span class="course-badge" style="${badgeStyle};">
+                        ${courseStatus}
+                    </span>
+                </div>`;
+                        }).join("");
+                    } else {
+                        coursesEl.innerHTML = `<div class="empty-msg">No courses enrolled yet</div>`;
+                    }
 
-                // ── Grades (latest 5) ──
-                const gradesEl = document.getElementById("grades-list");
-                const gradeList = Array.isArray(grades) ? grades.slice(0, 5) : [];
-                if (gradeList.length > 0) {
-                    gradesEl.innerHTML = gradeList.map(g => `
+                    // ── Recent grades (latest 5, all grades) ──
+                    const gradesEl = document.getElementById("grades-list");
+                    if (gradeList.length > 0) {
+                        gradesEl.innerHTML = gradeList.slice(0, 5).map(g => `
                 <div class="grade-item">
                     <div>
                         <div class="fw-semibold text-dark" style="font-size:14px;">
@@ -638,58 +702,65 @@
                     ${gradePill(g.score, g.max_score)}
                 </div>
             `).join("");
-                } else {
-                    gradesEl.innerHTML = `<div class="empty-msg">No grades recorded yet</div>`;
-                }
+                    } else {
+                        gradesEl.innerHTML = `<div class="empty-msg">No grades recorded yet</div>`;
+                    }
 
-                // ── Attendance (latest 5) ──
-                const attEl = document.getElementById("attendance-list");
-                const recentAtt = attList.slice(-5).reverse();
-                if (recentAtt.length > 0) {
-                    attEl.innerHTML = recentAtt.map(a => `
+                    // ── Recent attendance (latest 5) ──
+                    const attEl = document.getElementById("attendance-list");
+                    const recentAtt = attList.slice(-5).reverse();
+                    if (recentAtt.length > 0) {
+                        attEl.innerHTML = recentAtt.map(a => `
                 <div class="grade-item">
                     <div>
-                        <div class="fw-semibold text-dark" style="font-size:14px;">${a.date}</div>
+                        <div class="fw-semibold text-dark" style="font-size:14px;">
+                            ${a.date ? a.date.split("T")[0] : "—"}
+                        </div>
                     </div>
                     ${attBadge(a.status)}
                 </div>
             `).join("");
-                } else {
-                    attEl.innerHTML = `<div class="empty-msg">No attendance records yet</div>`;
-                }
+                    } else {
+                        attEl.innerHTML = `<div class="empty-msg">No attendance records yet</div>`;
+                    }
 
-                // ── Assignments (upcoming only, sorted by due date) ──
-                const assignEl = document.getElementById("assignments-list");
-                const upcoming = assignList
-                    .filter(a => new Date(a.due_date) > new Date())
-                    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-                    .slice(0, 5);
+                    // ── Upcoming assignments (enrolled, not submitted, not overdue, soonest first) ──
+                    const assignEl = document.getElementById("assignments-list");
+                    const upcoming = assignList
+                        .filter(a => enrolledCourseIds.includes(a.course_id))
+                        .filter(a => new Date(a.due_date) > new Date())
+                        .filter(a => !submittedIds.has(String(a.id)))
+                        .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+                        .slice(0, 5);
 
-                if (upcoming.length > 0) {
-                    assignEl.innerHTML = upcoming.map(a => `
+                    if (upcoming.length > 0) {
+                        assignEl.innerHTML = upcoming.map(a => `
                 <div class="assign-item">
                     <div>
-                        <div class="fw-semibold text-dark" style="font-size:14px;">${a.title}</div>
-                        <div class="text-muted" style="font-size:12px;">Max: ${a.max_score} pts</div>
+                        <div class="fw-semibold text-dark" style="font-size:14px;">
+                            ${a.title}
+                        </div>
+                        <div class="text-muted" style="font-size:12px;">
+                            Max: ${a.max_score} pts
+                        </div>
                     </div>
                     ${dueBadge(a.due_date)}
                 </div>
             `).join("");
-                } else {
-                    assignEl.innerHTML = `<div class="empty-msg">No upcoming assignments</div>`;
+                    } else {
+                        assignEl.innerHTML = `<div class="empty-msg">No upcoming assignments</div>`;
+                    }
+
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("content").style.display = "block";
+
+                } catch (err) {
+                    const errEl = document.getElementById("page-error");
+                    errEl.textContent = err.message;
+                    errEl.classList.remove("d-none");
+                    document.getElementById("loading").style.display = "none";
                 }
-
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("content").style.display = "block";
-
-            } catch (err) {
-                const errEl = document.getElementById("page-error");
-                errEl.textContent = err.message;
-                errEl.classList.remove("d-none");
-                document.getElementById("loading").style.display = "none";
             }
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
             loadDashboard();

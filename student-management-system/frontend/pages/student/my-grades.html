@@ -497,42 +497,71 @@
                 const fillCls = scoreFillCls(pct);
                 const date = g.graded_at ? new Date(g.graded_at).toLocaleDateString() : "—";
 
+                // ── Fix: use course_name snapshot if course deleted ──
+                let courseDisplay = "";
+                let deletedBadge = "";
+
+                if (g.course_id && courseMap[g.course_id]) {
+                    // Course still exists
+                    courseDisplay = courseMap[g.course_id];
+                } else if (g.course_name) {
+                    // Course deleted but name was saved
+                    courseDisplay = g.course_name;
+                    deletedBadge = `<span class="badge bg-secondary ms-1"
+                              style="font-size:10px;vertical-align:middle;">
+                              Deleted
+                          </span>`;
+                } else {
+                    // No name saved (old records before fix)
+                    courseDisplay = "Deleted Course";
+                    deletedBadge = `<span class="badge bg-secondary ms-1"
+                              style="font-size:10px;vertical-align:middle;">
+                              Deleted
+                          </span>`;
+                }
+
                 return `
-        <tr>
-            <td><span class="comp-badge">${g.component_type}</span></td>
-            <td><strong>${courseMap[g.course_id] || g.course_id.slice(0, 8) + "..."}</strong></td>
-            <td>
-                <div class="score-bar">
-                    <span style="font-weight:600; min-width:60px;">${g.score}/${g.max_score}</span>
-                    <div class="score-track">
-                        <div class="score-fill ${fillCls}" style="width:${pct.toFixed(0)}%"></div>
-                    </div>
-                    <span class="text-muted" style="font-size:12px; min-width:36px;">${pct.toFixed(0)}%</span>
-                </div>
-            </td>
-            <td><span class="grade-badge ${cls}">${letter}</span></td>
-            <td><span class="text-muted">${(g.weight * 100).toFixed(0)}%</span></td>
-            <td><span class="text-muted" style="font-size:13px;">${date}</span></td>
-        </tr>`;
+                <tr>
+                    <td><span class="comp-badge">${g.component_type}</span></td>
+                    <td>
+                        <strong>${courseDisplay}</strong>${deletedBadge}
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <span style="font-weight:600;min-width:60px;">${g.score}/${g.max_score}</span>
+                            <div class="score-track">
+                                <div class="score-fill ${fillCls}" style="width:${pct.toFixed(0)}%"></div>
+                            </div>
+                            <span class="text-muted" style="font-size:12px;min-width:36px;">${pct.toFixed(0)}%</span>
+                        </div>
+                    </td>
+                    <td><span class="grade-badge ${cls}">${letter}</span></td>
+                    <td><span class="text-muted">${(g.weight * 100).toFixed(0)}%</span></td>
+                    <td><span class="text-muted" style="font-size:13px;">${date}</span></td>
+                </tr>`;
             }).join("");
         }
 
         function applyFilters() {
-            const term = document.getElementById("search-input").value.toLowerCase();
-            const comp = document.getElementById("component-filter").value;
+                const term = document.getElementById("search-input").value.toLowerCase();
+                const comp = document.getElementById("component-filter").value;
 
-            const courseMap = {};
-            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
+                const courseMap = {};
+                allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
 
-            const filtered = allGrades.filter(g => {
-                const matchText = (courseMap[g.course_id] || "").includes(term);
-                const matchComp = !comp || g.component_type === comp;
-                return matchText && matchComp;
-            });
+                const filtered = allGrades.filter(g => {
+                    // ← also search course_name for deleted courses
+                    const courseName = g.course_id
+                        ? (courseMap[g.course_id] || g.course_name || "")
+                        : (g.course_name || "deleted course");
+                    const matchText = courseName.toLowerCase().includes(term);
+                    const matchComp = !comp || g.component_type === comp;
+                    return matchText && matchComp;
+                });
 
-            updateStats(filtered);
-            renderGrades(filtered);
-        }
+                updateStats(filtered);
+                renderGrades(filtered);
+            }
 
         async function loadGrades() {
             try {

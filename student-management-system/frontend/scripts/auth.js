@@ -100,7 +100,7 @@ async function logoutUser() {
         console.error("Logout error:", err);
     } finally {
         localStorage.clear();
-        window.location.href = "/frontend/pages/login.html";
+        window.location.href = "/frontend/index.html";
     }
 }
 

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance - Student</title>
-    
+    <title>My Attendance - StudentHub</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
 
     <style>
         :root {
@@ -21,246 +21,517 @@
             --border: #e5e7eb;
         }
 
-        body { 
-            background: #f8fafc; 
+        body {
+            background: #f8fafc;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .navbar { 
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); 
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); 
-            padding: 1rem 0; 
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            padding: 1rem 2rem;
         }
 
-        .navbar-brand { 
-            font-size: 24px; 
-            font-weight: 700; 
-            color: white !important; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+        .navbar-brand {
+            color: white !important;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
         }
 
-        .navbar-nav .nav-link { 
-            color: rgba(255, 255, 255, 0.85) !important; 
-            font-weight: 500; 
-            margin: 0 10px; 
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .navbar-nav .nav-link:hover { 
-            color: white !important; 
+        .btn-nav:hover {
+            background: white;
+            color: var(--primary);
         }
 
-        .btn-logout { 
-            background: rgba(255, 255, 255, 0.2) !important; 
-            border: 2px solid white !important; 
-            color: white !important; 
-            font-weight: 600; 
-            margin-left: 10px; 
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            min-height: calc(100vh - 66px);
+            padding: 30px 0;
+            position: sticky;
+            top: 66px;
         }
 
-        .btn-logout:hover { 
-            background: white !important; 
-            color: var(--primary) !important; 
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .sidebar { 
-            background: white; 
-            border-right: 1px solid var(--border); 
-            min-height: calc(100vh - 80px); 
-            padding: 30px 0; 
-            position: sticky; 
-            top: 80px; 
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            margin: 0 10px;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s;
         }
 
-        .sidebar-menu { 
-            list-style: none; 
+        .sidebar-menu a:hover {
+            background: var(--light);
+            color: var(--primary);
+            border-left-color: var(--primary);
         }
 
-        .sidebar-menu a { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px 20px; 
-            color: var(--secondary); 
-            text-decoration: none; 
-            font-weight: 500; 
-            border-left: 3px solid transparent; 
-            margin: 0 10px; 
-            border-radius: 0 8px 8px 0; 
+        .sidebar-menu a.active {
+            background: #ede9fe;
+            color: var(--primary);
+            border-left-color: var(--primary);
         }
 
-        .sidebar-menu a:hover { 
-            background: var(--light); 
-            color: var(--primary); 
-            border-left-color: var(--primary); 
+        .main-content {
+            padding: 40px 24px;
         }
 
-        .sidebar-menu a.active { 
-            background: #ede9fe; 
-            color: var(--primary); 
-            border-left-color: var(--primary); 
+        .page-header {
+            margin-bottom: 28px;
         }
 
-        .main-content { 
-            padding: 40px 20px; 
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
         }
 
-        .page-header { 
-            margin-bottom: 30px; 
+        .page-header p {
+            color: #6b7280;
+            margin: 4px 0 0;
+            font-size: 14px;
         }
 
-        .page-header h1 { 
-            font-size: 32px; 
-            font-weight: 700; 
-            color: #1f2937; 
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .attendance-card { 
-            background: white; 
-            border-radius: 12px; 
-            padding: 25px; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
-            margin-bottom: 20px; 
+        .filter-bar input,
+        .filter-bar select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 14px;
+            transition: border-color 0.2s;
         }
 
-        .attendance-stats { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 15px; 
-            margin-bottom: 30px; 
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
         }
 
-        .stat-item { 
-            background: var(--light); 
-            padding: 15px; 
-            border-radius: 8px; 
-            text-align: center; 
+        .filter-bar select {
+            min-width: 160px;
         }
 
-        .stat-value { 
-            font-size: 24px; 
-            font-weight: 700; 
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            background-clip: text; 
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .stat-label { 
-            font-size: 13px; 
-            color: var(--secondary); 
-            margin-top: 5px; 
+        .attendance-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
         }
 
-        .attendance-table { 
-            width: 100%; 
-            border-collapse: collapse; 
+        .attendance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
-        .attendance-table th { 
-            background: var(--light); 
-            padding: 12px; 
-            text-align: left; 
-            font-weight: 600; 
-            color: #374151; 
-            border-bottom: 2px solid var(--border); 
-            font-size: 13px; 
+        .stat-item {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
         }
 
-        .attendance-table td { 
-            padding: 12px; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 14px; 
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .badge-present { 
-            background: #dcfce7; 
-            color: #166534; 
-            padding: 4px 10px; 
-            border-radius: 4px; 
-            font-size: 12px; 
-            font-weight: 600; 
+        .stat-label {
+            font-size: 13px;
+            color: var(--secondary);
+            margin-top: 5px;
         }
 
-        .badge-absent { 
-            background: #fee2e2; 
-            color: #991b1b; 
-            padding: 4px 10px; 
-            border-radius: 4px; 
-            font-size: 12px; 
-            font-weight: 600; 
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .badge-late { 
-            background: #fef3c7; 
-            color: #92400e; 
-            padding: 4px 10px; 
-            border-radius: 4px; 
-            font-size: 12px; 
-            font-weight: 600; 
+        .attendance-table th {
+            background: var(--light);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid var(--border);
+            font-size: 13px;
         }
 
-        @media (max-width: 768px) { 
-            .page-header { margin-bottom: 20px; } 
+        .attendance-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .attendance-table tr:hover td {
+            background: #fafafa;
+        }
+
+        .badge-present {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-absent {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-late {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-excused {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+
+    <!-- ── Navbar ── -->
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
-            <span class="navbar-brand">
-                <i class="bi bi-mortarboard"></i> StudentHub
-            </span>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto">
-                    <button class="btn btn-logout" id="logout-btn">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </button>
-                </div>
+            <a class="navbar-brand" href="../../index.html">
+                <i class="bi bi-book"></i> StudentHub
+            </a>
+            <div class="ms-auto d-flex gap-2">
+                <a href="dashboard.html" class="btn-nav">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <button class="btn-nav" id="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
             </div>
         </div>
     </nav>
 
     <div class="container-fluid">
-        <div class="row" style="min-height: calc(100vh - 80px);">
+        <div class="row">
+
+            <!-- ── Sidebar ── -->
             <div class="col-md-3 col-lg-2 sidebar">
                 <ul class="sidebar-menu">
-                    <li><a href="dashboard.html" class="nav-item">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a></li>
-                    <li><a href="my-courses.html" class="nav-item">
-                        <i class="bi bi-book"></i> My Courses
-                    </a></li>
-                    <li><a href="my-grades.html" class="nav-item">
-                        <i class="bi bi-star"></i> My Grades
-                    </a></li>
-                    <li><a href="my-assignments.html" class="nav-item">
-                        <i class="bi bi-clipboard"></i> My Assignments
-                    </a></li>
-                    <li><a href="my-attendance.html" class="nav-item active">
-                        <i class="bi bi-calendar-check"></i> My Attendance
-                    </a></li>
+                    <li><a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li><a href="my-courses.html"><i class="bi bi-book"></i> My Courses</a></li>
+                    <li><a href="my-grades.html"><i class="bi bi-star"></i> My Grades</a></li>
+                    <li><a href="my-assignments.html"><i class="bi bi-clipboard"></i> My Assignments</a></li>
+                    <li><a href="my-attendance.html" class="active"><i class="bi bi-calendar-check"></i> My
+                            Attendance</a></li>
                 </ul>
             </div>
 
+            <!-- ── Main content ── -->
             <div class="col-md-9 col-lg-10 main-content">
+
+                <div id="page-error" class="alert alert-danger d-none mb-3"></div>
+
                 <div class="page-header">
-                    <h1>Attendance Record</h1>
+                    <h1><i class="bi bi-calendar-check me-2" style="color:var(--primary)"></i>My Attendance</h1>
+                    <p>Your attendance records across all enrolled courses</p>
+                </div>
+
+                <!-- Filter bar -->
+                <div class="filter-bar">
+                    <input type="text" id="search-input" placeholder="🔍 Search by course..."
+                        oninput="filterAttendance()">
+                    <select id="status-filter" onchange="filterAttendance()">
+                        <option value="">All Status</option>
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                        <option value="late">Late</option>
+                        <option value="excused">Excused</option>
+                    </select>
                 </div>
 
                 <div class="attendance-card">
-                    <div class="attendance-stats" id="stats-container"></div>
-                    <div id="attendance-container"></div>
+                    <!-- Stats -->
+                    <div class="attendance-stats" id="stats-container">
+                        <div class="stat-item">
+                            <div class="stat-value">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                            <div class="stat-label">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div id="attendance-container">
+                        <div style="text-align:center;padding:40px;color:var(--primary);">
+                            <div class="spinner-border text-primary mb-3"></div>
+                            <p>Loading attendance records...</p>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-   
+    <script src="../../scripts/main.js"></script>
+    <script src="../../scripts/auth.js"></script>
+    <script src="../../scripts/student.js"></script>
+    <script>
+        let allAttendance = [];
+        let allCourses = [];
+
+        // ── Helpers ───────────────────────────────────────────────────────────────────
+        function attBadge(status) {
+            const map = {
+                present: `<span class="badge-present">Present</span>`,
+                absent: `<span class="badge-absent">Absent</span>`,
+                late: `<span class="badge-late">Late</span>`,
+                excused: `<span class="badge-excused">Excused</span>`
+            };
+            return map[status] || `<span class="badge-present">${status}</span>`;
+        }
+
+        // ── Stats ─────────────────────────────────────────────────────────────────────
+        function renderStats(records) {
+                // Normalize date to just YYYY-MM-DD before comparing
+                // Backend might return "2026-04-17T00:00:00" or "2026-04-17"
+                const uniqueClasses = new Set(
+                    records.map(r => {
+                        const dateOnly = r.date ? r.date.split("T")[0] : r.date;
+                        return `${dateOnly}_${r.course_id}`;
+                    })
+                ).size;
+
+                const total = records.length;
+                const present = records.filter(r => r.status === "present").length;
+                const absent = records.filter(r => r.status === "absent").length;
+                const late = records.filter(r => r.status === "late").length;
+                const excused = records.filter(r => r.status === "excused").length;
+                const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+                document.getElementById("stats-container").innerHTML = `
+        <div class="stat-item">
+            <div class="stat-value">${rate}%</div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${uniqueClasses}</div>
+            <div class="stat-label">Total Records</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                ${present}
+            </div>
+            <div class="stat-label">Present</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="background:linear-gradient(135deg,#ef4444,#dc2626);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                ${absent}
+            </div>
+            <div class="stat-label">Absent</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="background:linear-gradient(135deg,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                ${late}
+            </div>
+            <div class="stat-label">Late</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                ${excused}
+            </div>
+            <div class="stat-label">Excused</div>
+        </div>
+    `;
+            }
+
+        // ── Render table ──────────────────────────────────────────────────────────────
+        function renderAttendance(records) {
+            const container = document.getElementById("attendance-container");
+
+            if (!records || records.length === 0) {
+                container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <p class="fw-semibold">No attendance records found</p>
+                <p class="small">Records will appear here once your instructor marks attendance.</p>
+            </div>`;
+                return;
+            }
+
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
+
+            container.innerHTML = `
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Course</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${records
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map(r => `
+                    <tr>
+                       <td>${new Date(r.date.split("T")[0] + "T00:00:00").toLocaleDateString("en-GB", {
+                           day: "2-digit", month: "short", year: "numeric"
+                       })}</td>
+                        <td><strong>${courseMap[r.course_id] ||
+                        `<span style="color:#9ca3af;font-style:italic;">Deleted Course</span>`}</strong></td>
+                        <td>${attBadge(r.status)}</td>
+                    </tr>`).join("")}
+            </tbody>
+        </table>`;
+        }
+
+        // ── Filter ────────────────────────────────────────────────────────────────────
+        function filterAttendance() {
+            const term = document.getElementById("search-input").value.toLowerCase();
+            const status = document.getElementById("status-filter").value;
+
+            const courseMap = {};
+            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} ${c.title}`.toLowerCase());
+
+            const filtered = allAttendance.filter(r => {
+                const matchText = (courseMap[r.course_id] || "").includes(term);
+                const matchStatus = !status || r.status === status;
+                return matchText && matchStatus;
+            });
+
+            renderStats(filtered);
+            renderAttendance(filtered);
+        }
+
+        // ── Load ──────────────────────────────────────────────────────────────────────
+        async function loadAttendance() {
+                try {
+                    if (!requireAuth("student")) return;
+
+                    const studentId = localStorage.getItem("student_id");
+                    if (!studentId) throw new Error("Student ID not found. Please login again.");
+
+                    const [enrollments, attendance] = await Promise.all([
+                        apiFetch(`/students/${studentId}/courses`),
+                        apiFetch(`/students/${studentId}/attendance`)
+                    ]);
+
+                    // ── Fix 1: use both course_id and course?.id ──
+                    const enrolledCourseIds = enrollments
+                        .map(e => e.course_id || e.course?.id)
+                        .filter(Boolean);
+
+                    // Course objects for name mapping
+                    allCourses = enrollments.map(e => e.course).filter(Boolean);
+
+                    // Only show attendance from enrolled courses
+                    allAttendance = Array.isArray(attendance)
+                        ? attendance.filter(a => enrolledCourseIds.includes(a.course_id))
+                        : [];
+
+                    renderStats(allAttendance);
+                    renderAttendance(allAttendance);
+
+                } catch (err) {
+                    const errEl = document.getElementById("page-error");
+                    errEl.textContent = err.message;
+                    errEl.classList.remove("d-none");
+                    document.getElementById("attendance-container").innerHTML = "";
+                    document.getElementById("stats-container").innerHTML = "";
+                }
+            }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
+            loadAttendance();
+        });
+    </script>
+
 </body>
+
 </html>

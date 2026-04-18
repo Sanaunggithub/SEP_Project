@@ -6,6 +6,8 @@ from models.auth import User, Role
 from models.course import Course, CourseEnrollment, CourseStatus
 from schemas.course import CourseResponse, CourseCreate, CourseUpdate, EnrollmentResponse
 from core.security import get_current_user
+from models.assignment import Assignment, Submission
+from models.grade import Grade
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -16,11 +18,37 @@ def check_role(required_roles: list):
         return current_user
     return role_checker
 
+@router.get("/{course_id}/enrollments")
+def get_course_enrollments(
+    course_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    enrollments = db.query(CourseEnrollment).filter(
+        CourseEnrollment.course_id == course_id
+    ).all()
+
+    return [
+        {
+            "enrollment_id": str(e.id),
+            "student_id":    str(e.student_id),
+            "course_id":     str(e.course_id),
+            "status":        e.status.value,
+            "enrolled_at":   e.enrolled_at
+        }
+        for e in enrollments
+    ]
+
 @router.get("/", response_model=list[CourseResponse])
 def list_courses(
     semester: str | None = Query(None),
     department: str | None = Query(None),
     status_filter: str | None = Query(None),
+    active_only: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db)
@@ -34,6 +62,9 @@ def list_courses(
     if status_filter:
         query = query.filter(Course.status == status_filter)
     
+    if active_only:
+        query = query.filter(Course.status == CourseStatus.active)
+        
     courses = query.offset(skip).limit(limit).all()
     return courses
 
@@ -88,18 +119,37 @@ def update_course(
 def delete_course(
     course_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(check_role(["instructor", "admin"]))
+    current_user: User = Depends(check_role(["admin"]))
 ):
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
-    
-    if current_user.role.value == "instructor" and str(course.instructor_id) != str(current_user.id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
-    course.is_active = False
-    db.add(course)
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # Step 1: Delete submissions for assignments in this course
+    assignment_ids = [
+        a.id for a in db.query(Assignment.id).filter(
+            Assignment.course_id == course_id
+        ).all()
+    ]
+    if assignment_ids:
+        db.query(Submission).filter(
+            Submission.assignment_id.in_(assignment_ids)
+        ).delete(synchronize_session=False)
+
+    # Step 2: Save course name into grades before nullifying course_id
+    # So grade pages can still show the course name after deletion
+    course_title = f"{course.course_code} - {course.title}"
+    db.query(Grade).filter(
+        Grade.course_id == course_id
+    ).update(
+        {"course_id": None, "course_name": course_title},
+        synchronize_session=False
+    )
+
+    # Step 3: Hard delete course
+    db.delete(course)
     db.commit()
+    return None
 
 @router.post("/{course_id}/enroll", response_model=EnrollmentResponse, status_code=status.HTTP_201_CREATED)
 def enroll_student(
@@ -111,6 +161,13 @@ def enroll_student(
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
+
+    # ── Prevent enrollment in non-active courses ──
+    if course.status.value != "active":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot enroll — course is '{course.status.value}'"
+        )
 
     role = current_user.role.value
 

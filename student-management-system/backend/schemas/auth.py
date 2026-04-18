@@ -19,19 +19,21 @@ class AccountStatusEnum(str, Enum):
     inactive = "inactive"
 
 class UserBase(BaseModel):
-    full_name: str
-    email: EmailStr
-    phone_number: str
-    date_of_birth: date
-    gender: GenderEnum
-    address: str
-    emergency_contact_name: str
-    emergency_contact_phone: str
+    full_name:               str
+    email:                   EmailStr
+    phone_number:            Optional[str] = None
+    date_of_birth:           Optional[date] = None  # ← Optional
+    gender:                  Optional[GenderEnum] = None  # ← Optional
+    address:                 Optional[str] = None   # ← Optional
+    emergency_contact_name:  Optional[str] = None   # ← Optional
+    emergency_contact_phone: Optional[str] = None   # ← Optional
 
 class UserCreate(UserBase):
-    password: str
-    role: RoleEnum = RoleEnum.student
-
+    password:   str
+    role:       RoleEnum     = RoleEnum.student
+    department: Optional[str] = None  # ← add
+    program:    Optional[str] = None  # ← add
+    
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
@@ -39,6 +41,8 @@ class UserUpdate(BaseModel):
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
     profile_picture_url: Optional[str] = None
+    department:              Optional[str] = None  # ← add
+    program:                 Optional[str] = None
 
 class UserResponse(UserBase):
     id: str

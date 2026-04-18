@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Courses - StudentHub</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
     <style>
         :root {
             --primary: #667eea;
@@ -115,31 +113,49 @@
             font-size: 14px;
         }
 
-        .search-bar {
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border-radius: 10px;
+            padding: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             margin-bottom: 24px;
+            width: fit-content;
         }
 
-        .search-bar input {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px 16px;
-            width: 100%;
-            max-width: 320px;
+        .tab-btn {
+            padding: 9px 22px;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
             font-size: 14px;
-            transition: border-color 0.2s;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
         }
 
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
-        /* Stats row */
+        .tab-btn:hover:not(.active) {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        /* Stats */
         .stats-row {
             display: flex;
             gap: 16px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
         }
 
@@ -175,7 +191,28 @@
             margin-top: 2px;
         }
 
-        /* Course cards */
+        /* Search */
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 16px;
+            width: 100%;
+            max-width: 360px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Enrolled course cards */
         .course-card {
             background: white;
             border-radius: 12px;
@@ -291,6 +328,126 @@
             background: linear-gradient(90deg, #10b981, #059669);
         }
 
+        .btn-drop {
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-drop:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Browse course cards */
+        .browse-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+            margin-bottom: 16px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .browse-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .browse-card.enrolled-already {
+            border-color: #10b981;
+            opacity: 0.7;
+        }
+
+        .browse-card.full {
+            border-color: #e5e7eb;
+            opacity: 0.6;
+        }
+
+        .browse-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .seats-bar {
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .seats-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s;
+        }
+
+        .seats-ok {
+            background: #10b981;
+        }
+
+        .seats-warn {
+            background: #f59e0b;
+        }
+
+        .seats-full {
+            background: #ef4444;
+        }
+
+        .btn-enroll {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-enroll:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .btn-enroll:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .already-tag {
+            background: #dcfce7;
+            color: #166534;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .full-tag {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -315,16 +472,10 @@
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="../../index.html">
-                <i class="bi bi-book"></i> StudentHub
-            </a>
+            <a class="navbar-brand" href="../../index.html"><i class="bi bi-book"></i> StudentHub</a>
             <div class="ms-auto d-flex gap-2">
-                <a href="dashboard.html" class="btn-nav">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <button class="btn-nav" id="logout-btn">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
+                <a href="dashboard.html" class="btn-nav"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <button class="btn-nav" id="logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</button>
             </div>
         </div>
     </nav>
@@ -342,41 +493,82 @@
             </div>
 
             <div class="col-md-9 col-lg-10 main-content">
-
                 <div id="page-error" class="alert alert-danger d-none mb-3"></div>
 
                 <div class="page-header">
                     <h1><i class="bi bi-book me-2" style="color:var(--primary)"></i>My Courses</h1>
-                    <p>All courses you are currently enrolled in</p>
+                    <p>Manage your enrolled courses or browse available ones</p>
                 </div>
 
-                <!-- Mini stats -->
-                <div class="stats-row">
-                    <div class="mini-stat">
-                        <div class="mini-stat-value" id="stat-total">—</div>
-                        <div class="mini-stat-label">Total Enrolled</div>
+                <!-- Tab bar -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tab-enrolled" onclick="switchTab('enrolled')">
+                        <i class="bi bi-journal-check"></i> Enrolled
+                    </button>
+                    <button class="tab-btn" id="tab-browse" onclick="switchTab('browse')">
+                        <i class="bi bi-search"></i> Browse & Enroll
+                    </button>
+                </div>
+
+                <!-- ── ENROLLED TAB ── -->
+                <div id="panel-enrolled">
+                    <div class="stats-row">
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="stat-total">—</div>
+                            <div class="mini-stat-label">Total Enrolled</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="stat-active">—</div>
+                            <div class="mini-stat-label">Active</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="stat-credits">—</div>
+                            <div class="mini-stat-label">Total Credits</div>
+                        </div>
                     </div>
-                    <div class="mini-stat">
-                        <div class="mini-stat-value" id="stat-active">—</div>
-                        <div class="mini-stat-label">Active</div>
+                    <div class="search-bar">
+                        <input type="text" id="search-enrolled" placeholder="🔍 Search enrolled courses...">
                     </div>
-                    <div class="mini-stat">
-                        <div class="mini-stat-value" id="stat-credits">—</div>
-                        <div class="mini-stat-label">Total Credits</div>
+                    <div id="enrolled-container">
+                        <div class="loading-state">
+                            <div class="spinner-border text-primary mb-3"></div>
+                            <p>Loading your courses...</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="search-bar">
-                    <input type="text" id="search-input" placeholder="🔍 Search by course name or code...">
-                </div>
-
-                <div id="courses-container">
-                    <div class="loading-state">
-                        <div class="spinner-border text-primary mb-3"></div>
-                        <p>Loading your courses...</p>
+                <!-- ── BROWSE TAB ── -->
+                <div id="panel-browse" style="display:none;">
+                    <div class="search-bar">
+                        <input type="text" id="search-browse" placeholder="🔍 Search available courses...">
+                    </div>
+                    <div id="browse-container">
+                        <div class="loading-state">
+                            <div class="spinner-border text-primary mb-3"></div>
+                            <p>Loading available courses...</p>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Drop Confirm Modal -->
+    <div class="modal fade" id="dropModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Drop Course?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to drop <strong id="drop-course-name"></strong>?
+                        This cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-drop-btn">Drop Course</button>
+                </div>
             </div>
         </div>
     </div>
@@ -384,45 +576,63 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../scripts/main.js"></script>
     <script src="../../scripts/auth.js"></script>
-    <script src="../../scripts/student.js"></script>
     <script>
         let allEnrollments = [];
+        let allCourses = [];
+        let studentId = null;
+        let droppingCourseId = null;
 
+        // ── Tab switching ─────────────────────────────────────────────────────────────
+        function switchTab(tab) {
+            document.getElementById("tab-enrolled").classList.toggle("active", tab === "enrolled");
+            document.getElementById("tab-browse").classList.toggle("active", tab === "browse");
+            document.getElementById("panel-enrolled").style.display = tab === "enrolled" ? "block" : "none";
+            document.getElementById("panel-browse").style.display = tab === "browse" ? "block" : "none";
+            if (tab === "browse" && allCourses.length === 0) loadBrowse();
+        }
+
+        // ── Status badge ──────────────────────────────────────────────────────────────
         function statusBadge(status) {
             const map = {
                 active: "status-active",
                 completed: "status-completed",
                 cancelled: "status-cancelled"
             };
-            return `<span class="status-badge ${map[status] || 'status-active'}">${status}</span>`;
+            const label = status
+                ? status.charAt(0).toUpperCase() + status.slice(1)
+                : "Active";
+            return `<span class="status-badge ${map[status] || 'status-active'}">${label}</span>`;
         }
 
-        function calcProgress(enrollment) {
-            // Progress based on enrollment status
-            if (enrollment.status === "completed") return 100;
-            if (enrollment.status === "cancelled") return 0;
-            return 60; // active — can be replaced with real progress data later
-        }
-
-        function renderCourses(enrollments) {
-            const container = document.getElementById("courses-container");
-
+        // ── Render enrolled courses ───────────────────────────────────────────────────
+        function renderEnrolled(enrollments) {
+            const container = document.getElementById("enrolled-container");
             if (!enrollments || enrollments.length === 0) {
                 container.innerHTML = `
             <div class="empty-state">
                 <i class="bi bi-journal-x"></i>
-                <p class="fw-semibold">No courses found</p>
-                <p class="small">You are not enrolled in any courses yet.</p>
+                <p class="fw-semibold">No courses enrolled yet</p>
+                <p class="small">Switch to <strong>Browse & Enroll</strong> tab to find courses.</p>
+                <button class="btn btn-primary mt-2" onclick="switchTab('browse')">
+                    <i class="bi bi-search"></i> Browse Courses
+                </button>
             </div>`;
                 return;
             }
 
             container.innerHTML = enrollments.map(e => {
                 const c = e.course || {};
-                const status = e.status || "active";
-                const progress = calcProgress(e);
-                const cardCls = status === "completed" ? "completed" : status === "cancelled" ? "cancelled" : "";
-                const fillCls = status === "completed" ? "complete" : "";
+
+                // ── Fix: use COURSE status not enrollment status ──
+                const courseStatus = c.status || "active";
+                const cardCls = courseStatus === "completed" ? "completed"
+                    : courseStatus === "cancelled" ? "cancelled" : "";
+                const fillCls = courseStatus === "completed" ? "complete" : "";
+                const progress = courseStatus === "completed" ? 100
+                    : courseStatus === "cancelled" ? 0 : 60;
+
+                // Only allow drop if course is still active
+                const canDrop = courseStatus === "active";
 
                 return `
         <div class="course-card ${cardCls}">
@@ -431,88 +641,217 @@
                     <div class="course-title">${c.title || "Unknown Course"}</div>
                     <span class="course-code">${c.course_code || "—"}</span>
                 </div>
-                ${statusBadge(status)}
+                <div class="d-flex align-items-center gap-2">
+                    ${statusBadge(courseStatus)}
+                </div>
             </div>
-
             <div class="course-meta">
-                <div class="meta-item">
-                    <i class="bi bi-person"></i>
-                    Instructor: ${c.instructor_id ? c.instructor_id.slice(0, 8) + "..." : "—"}
-                </div>
-                <div class="meta-item">
-                    <i class="bi bi-award"></i>
-                    ${c.credit_hours || "—"} Credits
-                </div>
-                <div class="meta-item">
-                    <i class="bi bi-calendar"></i>
-                    ${c.semester || "—"} ${c.year || ""}
-                </div>
-                <div class="meta-item">
-                    <i class="bi bi-clock"></i>
-                    ${c.start_time || "—"} – ${c.end_time || "—"}
-                </div>
-                <div class="meta-item">
-                    <i class="bi bi-geo-alt"></i>
-                    ${c.room_location || "—"}
-                </div>
-                <div class="meta-item">
-                    <i class="bi bi-calendar-check"></i>
+                <div class="meta-item"><i class="bi bi-award"></i> ${c.credit_hours || "—"} Credits</div>
+                <div class="meta-item"><i class="bi bi-calendar"></i> ${c.semester || "—"} ${c.year || ""}</div>
+                <div class="meta-item"><i class="bi bi-clock"></i> ${c.start_time || "—"} – ${c.end_time || "—"}</div>
+                <div class="meta-item"><i class="bi bi-geo-alt"></i> ${c.room_location || "—"}</div>
+                <div class="meta-item"><i class="bi bi-calendar-check"></i>
                     Enrolled: ${e.enrolled_at ? new Date(e.enrolled_at).toLocaleDateString() : "—"}
                 </div>
             </div>
-
+            ${courseStatus === "completed" ? `
+            <div style="padding:8px 12px;background:#eff6ff;border-radius:6px;
+                        font-size:13px;color:#1e40af;margin-bottom:12px;">
+                <i class="bi bi-check-circle-fill"></i>
+                This course has been completed
+            </div>` : ""}
+            ${courseStatus === "cancelled" ? `
+            <div style="padding:8px 12px;background:#fef2f2;border-radius:6px;
+                        font-size:13px;color:#991b1b;margin-bottom:12px;">
+                <i class="bi bi-x-circle-fill"></i>
+                This course has been cancelled
+            </div>` : ""}
             <div class="progress-label">
-                <span>Course Progress</span>
-                <span>${progress}%</span>
+                <span>Course Progress</span><span>${progress}%</span>
             </div>
             <div class="progress-track">
                 <div class="progress-fill ${fillCls}" style="width:${progress}%"></div>
             </div>
+            ${canDrop ? `
+            <button class="btn-drop"
+                onclick="openDropModal('${c.id}', '${(c.title || 'this course').replace(/'/g, "\\'")}')">
+                <i class="bi bi-x-circle"></i> Drop Course
+            </button>` : ""}
         </div>`;
             }).join("");
         }
 
+        // ── Update stats ──────────────────────────────────────────────────────────────
         function updateStats(enrollments) {
-            const active = enrollments.filter(e => e.status === "active").length;
+            // ← Count active courses using course.status not enrollment status
+            const active = enrollments.filter(e => (e.course?.status || "active") === "active").length;
             const credits = enrollments.reduce((sum, e) => sum + (e.course?.credit_hours || 0), 0);
             document.getElementById("stat-total").textContent = enrollments.length;
             document.getElementById("stat-active").textContent = active;
             document.getElementById("stat-credits").textContent = credits;
         }
 
-        function searchCourses() {
-            const term = document.getElementById("search-input").value.toLowerCase();
-            const filtered = allEnrollments.filter(e =>
-                (e.course?.title || "").toLowerCase().includes(term) ||
-                (e.course?.course_code || "").toLowerCase().includes(term) ||
-                (e.course?.semester || "").toLowerCase().includes(term)
+        // ── Render browse ─────────────────────────────────────────────────────────────
+        function renderBrowse(courses) {
+            const container = document.getElementById("browse-container");
+
+            // ── Fix: use both course_id and course?.id ──
+            const enrolledCourseIds = new Set(
+                allEnrollments.map(e => e.course_id || e.course?.id).filter(Boolean)
             );
-            renderCourses(filtered);
+
+            if (!courses || courses.length === 0) {
+                container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-search"></i>
+                <p>No active courses available</p>
+            </div>`;
+                return;
+            }
+
+            container.innerHTML = courses.map(c => {
+                const isEnrolled = enrolledCourseIds.has(c.id);
+                const isFull = c.enrolled_count >= c.max_seats;
+                const seatPct = Math.min(100, Math.round((c.enrolled_count / c.max_seats) * 100));
+                const seatCls = seatPct >= 100 ? "seats-full" : seatPct >= 80 ? "seats-warn" : "seats-ok";
+                const cardCls = isEnrolled ? "enrolled-already" : isFull ? "full" : "";
+
+                let actionBtn = "";
+                if (isEnrolled) {
+                    actionBtn = `<span class="already-tag"><i class="bi bi-check-circle"></i> Enrolled</span>`;
+                } else if (isFull) {
+                    actionBtn = `<span class="full-tag"><i class="bi bi-x-circle"></i> Full</span>`;
+                } else {
+                    actionBtn = `<button class="btn-enroll" onclick="enrollCourse('${c.id}', this)">
+                <i class="bi bi-plus-circle"></i> Enroll
+            </button>`;
+                }
+
+                return `
+        <div class="browse-card ${cardCls}">
+            <div class="browse-top">
+                <div>
+                    <div class="course-title">${c.title}</div>
+                    <span class="course-code">${c.course_code}</span>
+                    ${c.description
+                        ? `<p class="text-muted mt-1 mb-0" style="font-size:13px;">${c.description}</p>`
+                        : ""}
+                </div>
+                ${actionBtn}
+            </div>
+            <div class="course-meta">
+                <div class="meta-item"><i class="bi bi-award"></i> ${c.credit_hours} Credits</div>
+                <div class="meta-item"><i class="bi bi-calendar"></i> ${c.semester} ${c.year}</div>
+                <div class="meta-item"><i class="bi bi-clock"></i> ${c.start_time} – ${c.end_time}</div>
+                <div class="meta-item"><i class="bi bi-geo-alt"></i> ${c.room_location}</div>
+                <div class="meta-item"><i class="bi bi-people"></i> ${c.enrolled_count}/${c.max_seats} seats</div>
+            </div>
+            <div class="seats-bar">
+                <div class="seats-fill ${seatCls}" style="width:${seatPct}%"></div>
+            </div>
+        </div>`;
+            }).join("");
         }
 
-        async function loadCourses() {
+        // ── Enroll ────────────────────────────────────────────────────────────────────
+        async function enrollCourse(courseId, btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
             try {
-                if (!requireAuth("student")) return;
-
-                const studentId = localStorage.getItem("student_id");
-                if (!studentId) throw new Error("Student ID not found. Please login again.");
-
-                allEnrollments = await apiFetch(`/students/${studentId}/courses`);
-                updateStats(allEnrollments);
-                renderCourses(allEnrollments);
-
+                await apiFetch(`/courses/${courseId}/enroll?student_id=${studentId}`, {
+                    method: "POST"
+                });
+                await loadEnrolled();
+                renderBrowse(allCourses);
             } catch (err) {
-                const errEl = document.getElementById("page-error");
-                errEl.textContent = err.message;
-                errEl.classList.remove("d-none");
-                document.getElementById("courses-container").innerHTML = "";
+                alert("Enrollment failed: " + err.message);
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-plus-circle"></i> Enroll`;
             }
         }
 
+        // ── Drop ──────────────────────────────────────────────────────────────────────
+        function openDropModal(courseId, courseName) {
+            droppingCourseId = courseId;
+            document.getElementById("drop-course-name").textContent = courseName;
+            new bootstrap.Modal(document.getElementById("dropModal")).show();
+        }
+
+        async function confirmDrop() {
+            const btn = document.getElementById("confirm-drop-btn");
+            btn.disabled = true;
+            btn.textContent = "Dropping...";
+            try {
+                await apiFetch(`/courses/${droppingCourseId}/enroll?student_id=${studentId}`, {
+                    method: "DELETE"
+                });
+                bootstrap.Modal.getInstance(document.getElementById("dropModal")).hide();
+                await loadEnrolled();
+                if (allCourses.length > 0) renderBrowse(allCourses);
+            } catch (err) {
+                alert("Failed to drop course: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Drop Course";
+            }
+        }
+
+        // ── Load enrolled ─────────────────────────────────────────────────────────────
+        async function loadEnrolled() {
+            try {
+                const userId = localStorage.getItem("user_id");
+                const myStudent = await apiFetch(`/students/by-user/${userId}`);
+                studentId = myStudent.id;
+
+                allEnrollments = await apiFetch(`/students/${studentId}/courses`);
+                updateStats(allEnrollments);
+                renderEnrolled(allEnrollments);
+            } catch (err) {
+                document.getElementById("page-error").textContent = err.message;
+                document.getElementById("page-error").classList.remove("d-none");
+                document.getElementById("enrolled-container").innerHTML = "";
+            }
+        }
+
+        // ── Load browse — active courses only ────────────────────────────────────────
+        async function loadBrowse() {
+            try {
+                // ← active_only=true: only show active courses in browse tab
+                allCourses = await apiFetch("/courses/?skip=0&limit=1000&active_only=true");
+                renderBrowse(allCourses);
+            } catch (err) {
+                document.getElementById("browse-container").innerHTML =
+                    `<div class="alert alert-danger">${err.message}</div>`;
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
         document.addEventListener("DOMContentLoaded", () => {
+            if (!requireAuth("student")) return;
+
             document.getElementById("logout-btn").addEventListener("click", () => logoutUser());
-            document.getElementById("search-input").addEventListener("keyup", () => searchCourses());
-            loadCourses();
+            document.getElementById("confirm-drop-btn").addEventListener("click", confirmDrop);
+
+            document.getElementById("search-enrolled").addEventListener("keyup", () => {
+                const term = document.getElementById("search-enrolled").value.toLowerCase();
+                const filtered = allEnrollments.filter(e =>
+                    (e.course?.title || "").toLowerCase().includes(term) ||
+                    (e.course?.course_code || "").toLowerCase().includes(term)
+                );
+                renderEnrolled(filtered);
+            });
+
+            document.getElementById("search-browse").addEventListener("keyup", () => {
+                const term = document.getElementById("search-browse").value.toLowerCase();
+                const filtered = allCourses.filter(c =>
+                    (c.title || "").toLowerCase().includes(term) ||
+                    (c.course_code || "").toLowerCase().includes(term) ||
+                    (c.semester || "").toLowerCase().includes(term)
+                );
+                renderBrowse(filtered);
+            });
+
+            loadEnrolled();
         });
     </script>
 </body>

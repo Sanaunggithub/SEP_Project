@@ -28,13 +28,15 @@ class RoleChecker:
 def list_assignments(
     course_id: str | None = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
     query = db.query(Assignment)
     if course_id:
         query = query.filter(Assignment.course_id == course_id)
     return query.offset(skip).limit(limit).all()
+
+
 
 @router.post("/", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
 def create_assignment(
@@ -116,6 +118,25 @@ def submit_assignment(
     db.commit()
     db.refresh(submission)
     return submission
+
+@router.get("/my-submissions/{student_id}", response_model=list[SubmissionResponse])
+def get_my_submissions(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from models.student import Student
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if current_user.role.value not in ["admin"] and \
+       str(current_user.id) != str(student.user_id):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    submissions = db.query(Submission).filter(
+        Submission.student_id == student_id
+    ).all()
+    return submissions
 
 @router.get("/{assignment_id}/submissions")
 def get_assignment_submissions(

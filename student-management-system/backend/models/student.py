@@ -29,11 +29,11 @@ class Student(BaseModel):
 
     # Relationships
     user = relationship("User", uselist=False)
-    enrollments = relationship("CourseEnrollment", back_populates="student")
-    attendances = relationship("Attendance", back_populates="student")
-    submissions = relationship("Submission", back_populates="student")
-    grades = relationship("Grade", back_populates="student")
-    gpas = relationship("GPA", back_populates="student")
+    enrollments = relationship("CourseEnrollment", back_populates="student", cascade="all, delete-orphan")
+    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
+    submissions = relationship("Submission", back_populates="student", cascade="all, delete-orphan")
+    grades = relationship("Grade", back_populates="student",  cascade="all, delete-orphan")
+    gpas = relationship("GPA", back_populates="student",  cascade="all, delete-orphan")
     
     __table_args__ = (
         Index('idx_student_user', 'user_id'),

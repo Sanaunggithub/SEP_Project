@@ -29,12 +29,12 @@ class AttendanceUpdate(BaseModel):
     check_in_time: Optional[datetime] = None
 
 class AttendanceResponse(AttendanceBase):
-    id: str
-    check_in_time: Optional[datetime] = None
-    marked_by: str
-    attendance_percentage: Optional[float] = None
-    created_at: datetime
-    is_active: bool
+    id:                    str
+    check_in_time:         Optional[datetime] = None
+    marked_by:             Optional[str]      = None  # ← change to Optional
+    attendance_percentage: Optional[float]    = None
+    created_at:            datetime
+    is_active:             bool
 
     model_config = ConfigDict(from_attributes=True)
 

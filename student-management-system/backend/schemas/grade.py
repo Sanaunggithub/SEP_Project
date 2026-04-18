@@ -32,7 +32,8 @@ class GradeResponse(GradeBase):
     remarks: Optional[str] = None
     created_at: datetime
     is_active: bool
-
+    course_id: Optional[str] =  None
+    course_name:    Optional[str]  = None
     model_config = ConfigDict(from_attributes=True)
 
 class GPAResponse(BaseModel):

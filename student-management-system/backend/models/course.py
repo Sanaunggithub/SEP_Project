@@ -30,7 +30,7 @@ class Course(BaseModel):
     # Relationships
     instructor = relationship("User", back_populates="taught_courses")
     enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")
-    grades = relationship("Grade", back_populates="course", cascade="all, delete-orphan")
+    grades = relationship("Grade", back_populates="course", passive_deletes=True)
     attendances = relationship("Attendance", back_populates="course", cascade="all, delete-orphan")
     assignments = relationship("Assignment", back_populates="course", cascade="all, delete-orphan")
 

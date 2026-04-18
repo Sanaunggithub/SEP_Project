@@ -2,8 +2,8 @@ class CourseManager {
     constructor() {
         this.form = document.getElementById('course-form');
         this.list = document.getElementById('course-list');
-        this.form.addEventListener('submit', this.addCourse.bind(this));
-        if(this.form) this.loadCourses();
+        if (this.form) this.form.addEventListener('submit', this.addCourse.bind(this));
+        if (this.list) this.loadCourses();
     }
 
     async addCourse(e) {

@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management System</title>
-    
-    <!-- Bootstrap 5 CSS -->
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- PyScript -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script defer src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
     <style>
         :root {
@@ -37,7 +32,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Navigation */
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
@@ -102,7 +96,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        /* Header Section */
         .header-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -158,6 +151,7 @@
                 opacity: 0;
                 transform: translateY(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -169,18 +163,17 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* Content Section */
         .content-section {
             padding: 0 20px 60px;
         }
 
-        /* Feature Cards */
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -208,11 +201,6 @@
             transform: translateY(-8px);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
             border-color: #667eea;
-        }
-
-        .feature-card a {
-            text-decoration: none;
-            color: inherit;
         }
 
         .feature-icon {
@@ -246,7 +234,6 @@
             margin-bottom: 0;
         }
 
-        /* Stats Section */
         .stats-section {
             background: white;
             border-radius: 12px;
@@ -285,7 +272,6 @@
             font-weight: 600;
         }
 
-        /* Footer */
         footer {
             background: #1f2937;
             color: #9ca3af;
@@ -299,7 +285,6 @@
             font-size: 14px;
         }
 
-        /* Loading Animation */
         .loading {
             display: inline-block;
             width: 20px;
@@ -309,15 +294,25 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        /* Auth-gated sections hidden by default */
-        .auth-only { display: none; }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
 
-        /* Responsive */
+        .admin-only {
+            display: none;
+        }
+
+        .student-only {
+            display: none;
+        }
+
+        .guest-only {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .header-section h1 {
                 font-size: 32px;
@@ -333,19 +328,21 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Navigation -->
+
+    <!-- ── Navigation ── -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
             <span class="navbar-brand">
-                <i class="bi bi-book"></i>
-                StudentHub
+                <i class="bi bi-book"></i> StudentHub
             </span>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto">
+                    <!-- Admin links -->
                     <a class="nav-link" href="pages/admin/dashboard.html">
                         <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
@@ -367,24 +364,26 @@
                     <a class="nav-link" href="pages/admin/analytics.html">
                         <i class="bi bi-bar-chart"></i> Analytics
                     </a>
-                    <a class="nav-link" href="pages/login.html">
+                    <!-- Guest links -->
+                    <a class="nav-link" href="pages/login.html" id="login-link">
                         <i class="bi bi-box-arrow-in-right"></i> Login
                     </a>
+                    <a class="nav-link" href="pages/register.html" id="register-link">
+                        <i class="bi bi-person-plus"></i> Register
+                    </a>
+                    <!-- Logged-in buttons -->
                     <button class="btn btn-logout" id="dashboard-btn" style="display:none;">
                         <i class="bi bi-speedometer2"></i> My Dashboard
                     </button>
-                    <button class="btn btn-logout" id="logout-btn" style="display: none;">
+                    <button class="btn btn-logout" id="logout-btn" style="display:none;">
                         <i class="bi bi-box-arrow-right"></i> Logout
-                    </button>
-                    <button class="btn btn-logout" id="logout-btn" style="display: none;">
-                        <i class="bi bi-speedometer2"></i> Logout
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Header Section -->
+    <!-- ── Header ── -->
     <section class="header-section">
         <div class="header-content">
             <h1>Welcome to StudentHub</h1>
@@ -392,258 +391,547 @@
         </div>
     </section>
 
-    <!-- Main Content -->
+    <!-- ── Main Content ── -->
     <div class="content-section">
         <div class="container-fluid">
-            <!-- Stats Section -->
+
+            <!-- Stats — labels change per role via JS -->
             <div class="stats-section">
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-value" id="student-count">
+                        <div class="stat-value" id="stat-col1">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label" id="label-student-count">Total Students</div>
+                        <div class="stat-label" id="label-col1">Total Students</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="course-count">
+                        <div class="stat-value" id="stat-col2">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label" id="label-course-count">Active Courses</div>
+                        <div class="stat-label" id="label-col2">Active Courses</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="assignment-count">
+                        <div class="stat-value" id="stat-col3">
                             <span class="loading"></span>
                         </div>
-                        <div class="stat-label" id="label-assignment-count">Pending Assignments</div>
+                        <div class="stat-label" id="label-col3">Lecturers</div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- Features Grid -->
-            <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 30px;">Quick Access</h2>
-            <div class="feature-grid">
-                <a href="pages/admin/dashboard.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-speedometer2"></i>
-                    </div>
-                    <h3>Dashboard</h3>
-                    <p>View system overview and key metrics</p>
-                </a>
+            <!-- Section title — changes per role -->
+            <h2 id="section-title" style="font-size:28px;font-weight:700;color:#1f2937;margin-bottom:30px;">
+                Quick Access
+            </h2>
 
-                <a href="pages/admin/student.html" class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <h3>Students</h3>
-                    <p>Manage student profiles, information, and records</p>
-                </a>
-
-                <a href="pages/admin/course.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <i class="bi bi-book"></i>
-                    </div>
-                    <h3>Courses</h3>
-                    <p>Create and manage courses and course materials</p>
-                </a>
-
-                <a href="pages/admin/grade.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <i class="bi bi-star"></i>
-                    </div>
-                    <h3>Grades</h3>
-                    <p>Track and manage student grades and performance</p>
-                </a>
-
-                <a href="pages/admin/attendance.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                    <h3>Attendance</h3>
-                    <p>Monitor student attendance and participation</p>
-                </a>
-
-                <a href="pages/admin/assignment.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                        <i class="bi bi-clipboard"></i>
-                    </div>
-                    <h3>Assignments</h3>
-                    <p>Create, assign, and evaluate student assignments</p>
-                </a>
-
-                <a href="pages/admin/analytics.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
-                        <i class="bi bi-bar-chart"></i>
-                    </div>
-                    <h3>Analytics</h3>
-                    <p>View detailed analytics and performance reports</p>
-                </a>
-
-                <a href="pages/login.html" class="feature-card">
-                    <div class="feature-icon" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                    </div>
-                    <h3>Authentication</h3>
-                    <p>Secure login and user authentication</p>
-                </a>
+            <!-- ── Admin Quick Access ── -->
+            <div class="admin-only">
+                <div class="feature-grid">
+                    <a href="pages/admin/dashboard.html" class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <h3>Dashboard</h3>
+                        <p>View system overview and key metrics</p>
+                    </a>
+                    <a href="pages/admin/student.html" class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>Students</h3>
+                        <p>Manage student profiles, information, and records</p>
+                    </a>
+                    <a href="pages/admin/course.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3>Courses</h3>
+                        <p>Create and manage courses and course materials</p>
+                    </a>
+                    <a href="pages/admin/grade.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <h3>Grades</h3>
+                        <p>Track and manage student grades and performance</p>
+                    </a>
+                    <a href="pages/admin/attendance.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h3>Attendance</h3>
+                        <p>Monitor student attendance and participation</p>
+                    </a>
+                    <a href="pages/admin/assignment.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%);">
+                            <i class="bi bi-clipboard"></i>
+                        </div>
+                        <h3>Assignments</h3>
+                        <p>Create, assign, and evaluate student assignments</p>
+                    </a>
+                    <a href="pages/admin/analytics.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#30cfd0 0%,#330867 100%);">
+                            <i class="bi bi-bar-chart"></i>
+                        </div>
+                        <h3>Analytics</h3>
+                        <p>View detailed analytics and performance reports</p>
+                    </a>
+                </div>
             </div>
-                    
+
+            <!-- ── Student Quick Access ── -->
+            <div class="student-only">
+                <div class="feature-grid">
+                    <a href="pages/student/my-courses.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3>My Courses</h3>
+                        <p>View your enrolled courses and schedules</p>
+                    </a>
+                    <a href="pages/student/my-grades.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <h3>My Grades</h3>
+                        <p>Check your grades and academic performance</p>
+                    </a>
+                    <a href="pages/student/my-assignments.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%);">
+                            <i class="bi bi-clipboard"></i>
+                        </div>
+                        <h3>My Assignments</h3>
+                        <p>View and submit your assignments</p>
+                    </a>
+                    <a href="pages/student/my-attendance.html" class="feature-card">
+                        <div class="feature-icon" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h3>My Attendance</h3>
+                        <p>Track your attendance records</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ── Guest ── -->
+            <!-- ── Guest ── -->
+            <div class="guest-only">
+                <div class="feature-grid" id="courses-grid">
+                    <div style="text-align:center;padding:40px;color:#667eea;grid-column:1/-1;">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p>Loading available courses...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- ── Footer ── -->
     <footer>
         <p>&copy; 2026 StudentHub. All rights reserved. | Your Trusted Academic Management System</p>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Replace the entire <py-script>...</py-script> block with nothing -->
-    <!-- And add this JS before </body> -->
-    
     <script src="scripts/main.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/student.js"></script>
     <script src="scripts/course.js"></script>
     <script src="scripts/assignment.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-                const token = localStorage.getItem("access_token");
-                const role = localStorage.getItem("user_role");
+        
+        // ── Course grid (guest only) ──────────────────────────────────────────────────
+        async function loadPublicCourses() {
+                const grid = document.getElementById("courses-grid");
+                if (!grid) return;
 
-                // ── Navbar buttons ────────────────────────────────────────────────────────
-                const logoutBtn = document.getElementById("logout-btn");
-                const dashboardBtn = document.getElementById("dashboard-btn");
-                const loginLink = document.querySelector('a.nav-link[href="pages/login.html"]');
-                const loginCard = document.querySelector('a.feature-card[href="pages/login.html"]');
-
-                if (token) {
-                    // Show logout, hide login
-                    logoutBtn.style.display = "inline-block";
-                    logoutBtn.addEventListener("click", () => logoutUser());
-                    if (loginLink) loginLink.style.display = "none";
-                    if (loginCard) loginCard.style.display = "none";
-
-                    // Show dashboard button
-                    if (dashboardBtn) {
-                        dashboardBtn.style.display = "inline-block";
-                        const dashMap = {
-                            "admin": "pages/admin/dashboard.html",
-                            "instructor": "pages/dashboard.html",
-                            "student": "pages/student/dashboard.html"
-                        };
-                        dashboardBtn.addEventListener("click", () => {
-                            window.location.href = dashMap[role] || "pages/login.html";
-                        });
-                    }
-                } else {
-                    // Hide logout and dashboard, show login
-                    logoutBtn.style.display = "none";
-                    if (dashboardBtn) dashboardBtn.style.display = "none";
-                    if (loginLink) loginLink.style.display = "inline-block";
-                    if (loginCard) loginCard.style.display = "inline-flex";
-                }
-
-                // ── Auth guard for protected links ────────────────────────────────────────
-                const rules = [
-                    { pattern: /\/admin\//, roles: ["admin"] },
-                    { pattern: /\/student\//, roles: ["admin", "student"] },
-                    { pattern: /analytics|assignment|attendance|course|grade|student\.html/, roles: ["admin", "instructor"] }
+                const gradients = [
+                    "linear-gradient(135deg,#667eea,#764ba2)",
+                    "linear-gradient(135deg,#f093fb,#f5576c)",
+                    "linear-gradient(135deg,#4facfe,#00f2fe)",
+                    "linear-gradient(135deg,#43e97b,#38f9d7)",
+                    "linear-gradient(135deg,#fa709a,#fee140)",
+                    "linear-gradient(135deg,#30cfd0,#330867)",
+                    "linear-gradient(135deg,#ff9a56,#ff6a88)",
+                    "linear-gradient(135deg,#a18cd1,#fbc2eb)"
                 ];
 
-                document.querySelectorAll("a.nav-link, a.feature-card").forEach(link => {
-                    const href = link.getAttribute("href") || "";
-                    const matchedRule = rules.find(r => r.pattern.test(href));
-                    if (!matchedRule) return;
+                const icons = [
+                    "bi-book", "bi-calculator", "bi-cpu", "bi-palette",
+                    "bi-building", "bi-heart-pulse", "bi-graph-up", "bi-globe"
+                ];
 
-                    const allowed = token && matchedRule.roles.includes(role);
-                    if (!allowed) {
+                try {
+                    // ── Fetch active courses + public instructors in parallel — no auth needed ──
+                    const [coursesRes, instructorsRes] = await Promise.allSettled([
+                        fetch(`${API_BASE}/courses/?skip=0&limit=1000&active_only=true`).then(r => r.json()),
+                        fetch(`${API_BASE}/auth/instructors/public`).then(r => r.json())
+                    ]);
+
+                    const courses = coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value)
+                        ? coursesRes.value : [];
+                    const instructors = instructorsRes.status === "fulfilled" && Array.isArray(instructorsRes.value)
+                        ? instructorsRes.value : [];
+
+                    // ── Build instructor name map from public endpoint ──
+                    // /auth/instructors/public returns [{id, full_name}]
+                    const instructorMap = {};
+                    instructors.forEach(u => {
+                        instructorMap[u.id] = u.full_name || "TBA";
+                    });
+
+                    if (!courses.length) {
+                        grid.innerHTML = `
+                <div style="text-align:center;padding:40px;color:#9ca3af;grid-column:1/-1;">
+                    <i class="bi bi-journal-x"
+                       style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                    <p>No courses available yet</p>
+                </div>`;
+                        return;
+                    }
+
+                    grid.innerHTML = courses.map((c, i) => `
+            <div class="feature-card"
+                 style="cursor:default;align-items:flex-start;text-align:left;">
+                <div class="feature-icon"
+                     style="background:${gradients[i % gradients.length]};
+                            margin-bottom:16px;flex-shrink:0;">
+                    <i class="bi ${icons[i % icons.length]}"></i>
+                </div>
+                <div style="width:100%;">
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:flex-start;gap:8px;margin-bottom:6px;">
+                        <h3 style="font-size:16px;margin:0;color:#1f2937;">
+                            ${c.title}
+                        </h3>
+                        <span style="background:#ede9fe;color:#667eea;padding:3px 10px;
+                                     border-radius:20px;font-size:11px;font-weight:700;
+                                     white-space:nowrap;">
+                            ${c.course_code}
+                        </span>
+                    </div>
+
+                    ${c.description
+                            ? `<p style="color:#6b7280;font-size:13px;margin-bottom:12px;
+                                     display:-webkit-box;-webkit-line-clamp:2;
+                                     -webkit-box-orient:vertical;overflow:hidden;">
+                               ${c.description}
+                           </p>`
+                            : `<p style="color:#9ca3af;font-size:13px;margin-bottom:12px;
+                                     font-style:italic;">
+                               No description available
+                           </p>`}
+
+                    <div style="display:flex;flex-direction:column;gap:6px;
+                                padding-top:12px;border-top:1px solid #f3f4f6;">
+
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    font-size:13px;color:#374151;">
+                            <i class="bi bi-person-badge" style="color:#f59e0b;"></i>
+                            <span>
+                                ${instructorMap[c.instructor_id] || "TBA"}
+                            </span>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    font-size:13px;color:#374151;">
+                            <i class="bi bi-people" style="color:#10b981;"></i>
+                            <span>
+                                <strong>${c.enrolled_count}</strong> / ${c.max_seats} seats
+                            </span>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    font-size:13px;color:#374151;">
+                            <i class="bi bi-calendar3" style="color:#667eea;"></i>
+                            <span>
+                                ${c.semester} ${c.year} · ${c.credit_hours} credits
+                            </span>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    font-size:13px;color:#374151;">
+                            <i class="bi bi-clock" style="color:#8b5cf6;"></i>
+                            <span>
+                                ${c.start_time || "—"} – ${c.end_time || "—"}
+                            </span>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;
+                                    font-size:13px;color:#374151;">
+                            <i class="bi bi-geo-alt" style="color:#ef4444;"></i>
+                            <span>${c.room_location || "—"}</span>
+                        </div>
+
+                        <!-- Seats progress bar -->
+                        ${(() => {
+                            const pct = Math.min(100,
+                                Math.round((c.enrolled_count / c.max_seats) * 100));
+                            const color = pct >= 100 ? "#ef4444"
+                                : pct >= 80 ? "#f59e0b"
+                                    : "#10b981";
+                            return `
+                            <div style="margin-top:4px;">
+                                <div style="height:5px;background:#e5e7eb;
+                                            border-radius:3px;overflow:hidden;">
+                                    <div style="height:100%;width:${pct}%;
+                                                background:${color};
+                                                border-radius:3px;
+                                                transition:width 0.4s;">
+                                    </div>
+                                </div>
+                                <div style="font-size:11px;color:#9ca3af;
+                                            margin-top:3px;text-align:right;">
+                                    ${pct}% full
+                                </div>
+                            </div>`;
+                        })()}
+
+                    </div>
+                </div>
+            </div>`
+                    ).join("");
+
+                } catch (err) {
+                    console.error("Courses load error:", err);
+                    grid.innerHTML = `
+            <div style="text-align:center;padding:40px;color:#ef4444;grid-column:1/-1;">
+                <i class="bi bi-exclamation-circle"
+                   style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                <p>Failed to load courses. Please try again later.</p>
+            </div>`;
+                }
+        }
+
+        // Helper
+            function calculateGPA(grades) {
+                if (!grades || grades.length === 0) return null;
+                const pcts = grades.map(g => (g.score / g.max_score) * 100);
+                const gpaMap = { A: 4, B: 3, C: 2, D: 1, F: 0 };
+                function letterFromPct(pct) {
+                    if (pct >= 90) return "A";
+                    if (pct >= 80) return "B";
+                    if (pct >= 70) return "C";
+                    if (pct >= 60) return "D";
+                    return "F";
+                }
+                const total = pcts.reduce((sum, p) => sum + (gpaMap[letterFromPct(p)] || 0), 0);
+                return (total / pcts.length).toFixed(2);
+            }
+
+        // ── Main ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("access_token");
+            const role = localStorage.getItem("user_role");
+
+            // ── Section visibility ────────────────────────────────────────────────────
+            const adminSection = document.querySelector(".admin-only");
+            const studentSection = document.querySelector(".student-only");
+            const guestSection = document.querySelector(".guest-only");
+            const sectionTitle = document.getElementById("section-title");
+
+            if (token && role === "admin") {
+                adminSection.style.display = "contents";
+                studentSection.style.display = "none";
+                guestSection.style.display = "none";
+                sectionTitle.textContent = "Quick Access";
+
+            } else if (token && role === "student") {
+                adminSection.style.display = "none";
+                studentSection.style.display = "contents";
+                guestSection.style.display = "none";
+                sectionTitle.textContent = "Quick Access";
+
+            } else {
+                // Guest
+                adminSection.style.display = "none";
+                studentSection.style.display = "none";
+                guestSection.style.display = "contents";
+                sectionTitle.textContent = "Available Courses";
+            }
+    
+            // ── Navbar buttons ────────────────────────────────────────────────────────
+            const logoutBtn = document.getElementById("logout-btn");
+            const dashboardBtn = document.getElementById("dashboard-btn");
+            const loginLink = document.getElementById("login-link");
+            const registerLink = document.getElementById("register-link");
+
+            if (token) {
+                // Logged in — show logout + dashboard, hide login/register
+                logoutBtn.style.display = "inline-block";
+                logoutBtn.addEventListener("click", () => logoutUser());
+                if (loginLink) loginLink.style.display = "none";
+                if (registerLink) registerLink.style.display = "none";
+
+                if (dashboardBtn) {
+                    dashboardBtn.style.display = "inline-block";
+                    const dashMap = {
+                        "admin": "pages/admin/dashboard.html",
+                        "instructor": "pages/dashboard.html",
+                        "student": "pages/student/dashboard.html"
+                    };
+                    dashboardBtn.addEventListener("click", () => {
+                        window.location.href = dashMap[role] || "pages/login.html";
+                    });
+                }
+            } else {
+                // Guest — hide logout + dashboard, show login/register
+                logoutBtn.style.display = "none";
+                if (dashboardBtn) dashboardBtn.style.display = "none";
+                if (loginLink) loginLink.style.display = "inline-block";
+                if (registerLink) registerLink.style.display = "inline-block";
+            }
+
+            // ── Auth guard for navbar links ───────────────────────────────────────────
+            const rules = [
+                { pattern: /\/admin\//, roles: ["admin"] },
+                { pattern: /\/student\//, roles: ["admin", "student"] },
+                {
+                    pattern: /analytics|assignment|attendance|course|grade|student\.html/,
+                    roles: ["admin", "instructor"]
+                }
+            ];
+
+            document.querySelectorAll("a.nav-link").forEach(link => {
+                const href = link.getAttribute("href") || "";
+                const matchedRule = rules.find(r => r.pattern.test(href));
+                if (!matchedRule) return;
+
+                const allowed = token && matchedRule.roles.includes(role);
+                if (!allowed) {
+                    if (token && role === "student") {
+                        link.style.display = "none"; // student — hide admin links
+                    } else if (!token) {
+                        link.style.display = "none"; // guest — hide all protected links
+                    } else {
+                        // other mismatch — dim
                         link.style.opacity = "0.5";
                         link.style.cursor = "not-allowed";
                         link.style.pointerEvents = "none";
-                        link.addEventListener("click", e => {
-                            e.preventDefault();
-                            window.location.href = !token
-                                ? "/frontend/pages/login.html"
-                                : "/frontend/pages/login.html";
-                        }, true);
-                    }
-                });
-
-                // ── Stats ─────────────────────────────────────────────────────────────────
-                if (!token) {
-                    document.getElementById("student-count").textContent = "--";
-                    document.getElementById("course-count").textContent = "--";
-                    document.getElementById("assignment-count").textContent = "--";
-                    return; // stop here — no token, nothing else to do
-                }
-
-                if (role === "admin" || role === "instructor") {
-                    // System-wide stats
-                    try {
-                        const [students, courses, assignments] = await Promise.allSettled([
-                            apiFetch("/students/?skip=0&limit=100"),
-                            apiFetch("/courses/?skip=0&limit=100"),
-                            apiFetch("/assignments/?skip=0&limit=100")
-                        ]);
-
-                        document.getElementById("student-count").textContent =
-                            students.status === "fulfilled" && Array.isArray(students.value)
-                                ? students.value.length : "0";
-                        document.getElementById("course-count").textContent =
-                            courses.status === "fulfilled" && Array.isArray(courses.value)
-                                ? courses.value.length : "0";
-                        document.getElementById("assignment-count").textContent =
-                            assignments.status === "fulfilled" && Array.isArray(assignments.value)
-                                ? assignments.value.length : "0";
-                    } catch (err) {
-                        console.error("Stats error:", err);
-                    }
-
-                } else if (role === "student") {
-                    // Update stat labels for student context
-                    document.getElementById("label-student-count").textContent = "My GPA";
-                    document.getElementById("label-course-count").textContent = "My Courses";
-                    document.getElementById("label-assignment-count").textContent = "Pending Assignments";
-
-                    try {
-                        const studentId = localStorage.getItem("student_id");
-                        if (!studentId) {
-                            document.getElementById("student-count").textContent = "N/A";
-                            document.getElementById("course-count").textContent = "0";
-                            document.getElementById("assignment-count").textContent = "0";
-                            return;
-                        }
-
-                        const [studentData, courses, assignments] = await Promise.allSettled([
-                            apiFetch(`/students/${studentId}`),
-                            apiFetch(`/students/${studentId}/courses`),
-                            apiFetch("/assignments/?skip=0&limit=100")
-                        ]);
-
-                        document.getElementById("student-count").textContent =
-                            studentData.status === "fulfilled" && studentData.value.gpa != null
-                                ? studentData.value.gpa.toFixed(2) : "N/A";
-
-                        document.getElementById("course-count").textContent =
-                            courses.status === "fulfilled" && Array.isArray(courses.value)
-                                ? courses.value.length : "0";
-
-                        const assignList = assignments.status === "fulfilled"
-                            && Array.isArray(assignments.value)
-                            ? assignments.value : [];
-                        document.getElementById("assignment-count").textContent =
-                            assignList.filter(a => new Date(a.due_date) > new Date()).length;
-
-                    } catch (err) {
-                        console.error("Student stats error:", err);
-                        document.getElementById("student-count").textContent = "N/A";
-                        document.getElementById("course-count").textContent = "0";
-                        document.getElementById("assignment-count").textContent = "0";
                     }
                 }
             });
+
+            // ── Stats ─────────────────────────────────────────────────────────────────
+            if (!token) {
+                try {
+                    const [stats, courses] = await Promise.allSettled([
+                        apiFetch("/auth/stats/public"),
+                        apiFetch("/courses/?skip=0&limit=1000&active_only=true")
+                    ]);
+
+                    const statsData = stats.status === "fulfilled" ? stats.value : {};
+                    const courseList = courses.status === "fulfilled" && Array.isArray(courses.value)
+                        ? courses.value : [];
+
+                    document.getElementById("label-col1").textContent = "Total Students";
+                    document.getElementById("label-col2").textContent = "Active Courses";
+                    document.getElementById("label-col3").textContent = "Lecturers";
+
+                    document.getElementById("stat-col1").textContent = statsData.total_students ?? "--";
+                    document.getElementById("stat-col2").textContent = statsData.total_courses ?? "--";
+                    document.getElementById("stat-col3").textContent = statsData.total_lecturers ?? "--";
+
+                    // No arguments needed — loadMajors fetches its own data
+                    loadPublicCourses();
+
+                } catch (err) {
+                    console.error("Guest stats error:", err);
+                    document.getElementById("stat-col1").textContent = "--";
+                    document.getElementById("stat-col2").textContent = "--";
+                    document.getElementById("stat-col3").textContent = "--";
+                }
+                return;
+            }
+
+            if (role === "admin" || role === "instructor") {
+                document.getElementById("label-col1").textContent = "Total Students";
+                document.getElementById("label-col2").textContent = "Active Courses";
+                document.getElementById("label-col3").textContent = "Total Assignments";
+
+                try {
+                    const [students, courses, assignments] = await Promise.allSettled([
+                        apiFetch("/students/?skip=0&limit=1000"),
+                        apiFetch("/courses/?skip=0&limit=1000&active_only=true"),
+                        apiFetch("/assignments/?skip=0&limit=1000")
+                    ]);
+                    document.getElementById("stat-col1").textContent =
+                        students.status === "fulfilled" && Array.isArray(students.value)
+                            ? students.value.length : "0";
+                    document.getElementById("stat-col2").textContent =
+                        courses.status === "fulfilled" && Array.isArray(courses.value)
+                            ? courses.value.length : "0";
+                    document.getElementById("stat-col3").textContent =
+                        assignments.status === "fulfilled" && Array.isArray(assignments.value)
+                            ? assignments.value.length : "0";
+                } catch (err) {
+                    console.error("Admin stats error:", err);
+                }
+
+            } else if (role === "student") {
+                document.getElementById("label-col1").textContent = "My GPA";
+                document.getElementById("label-col2").textContent = "My Courses";
+                document.getElementById("label-col3").textContent = "Pending Assignments";
+
+                try {
+                    const studentId = localStorage.getItem("student_id");
+                    if (!studentId) {
+                        document.getElementById("stat-col1").textContent = "N/A";
+                        document.getElementById("stat-col2").textContent = "0";
+                        document.getElementById("stat-col3").textContent = "0";
+                        return;
+                    }
+
+                    // ← All 4 calls destructured correctly
+                    const [gradesRes, coursesRes, assignmentsRes, submissionsRes] =
+                        await Promise.allSettled([
+                            apiFetch(`/students/${studentId}/grades`),
+                            apiFetch(`/students/${studentId}/courses`),
+                            apiFetch("/assignments/?skip=0&limit=1000"),
+                            apiFetch(`/students/${studentId}/submissions`)
+                        ]);
+
+                    const grades = gradesRes.status === "fulfilled" ? gradesRes.value : [];
+                    const courseList = coursesRes.status === "fulfilled" ? coursesRes.value : [];
+                    const assignments = assignmentsRes.status === "fulfilled" ? assignmentsRes.value : [];
+                    const submissions = submissionsRes.status === "fulfilled" ? submissionsRes.value : [];
+
+                    // Enrolled course IDs
+                    const enrolledCourseIds = Array.isArray(courseList)
+                        ? courseList.map(e => e.course_id || e.course?.id).filter(Boolean)
+                        : [];
+
+                    // GPA from enrolled grades only
+                    const gradeList = Array.isArray(grades) ? grades : [];
+                    const gpa = calculateGPA(gradeList);
+                
+                    document.getElementById("stat-col1").textContent =
+                        gpa !== null ? gpa : "N/A";
+
+                    // Courses count
+                    document.getElementById("stat-col2").textContent =
+                        Array.isArray(courseList) ? courseList.length : 0;
+
+                    // Pending assignments — exclude submitted
+                    const submittedIds = new Set(
+                        Array.isArray(submissions) ? submissions.map(s => s.assignment_id) : []
+                    );
+                    const assignList = Array.isArray(assignments) ? assignments : [];
+                    document.getElementById("stat-col3").textContent = assignList
+                        .filter(a => enrolledCourseIds.includes(a.course_id))
+                        .filter(a => new Date(a.due_date) > new Date())
+                        .filter(a => !submittedIds.has(a.id))
+                        .length;
+
+                } catch (err) {
+                    console.error("Student stats error:", err);
+                    document.getElementById("stat-col1").textContent = "N/A";
+                    document.getElementById("stat-col2").textContent = "0";
+                    document.getElementById("stat-col3").textContent = "0";
+                }
+            }
+        });
     </script>
-    
+
 </body>
+
 </html>

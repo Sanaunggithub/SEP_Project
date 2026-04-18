@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - StudentHub</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .register-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 620px;
+            overflow: hidden;
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .register-header i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .register-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+
+        .register-header p {
+            opacity: 0.85;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .register-body {
+            padding: 32px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 24px 0 12px;
+            border-bottom: 2px solid #ede9fe;
+            padding-bottom: 6px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .login-link a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Role toggle */
+        .role-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .role-btn.active {
+            border-color: var(--primary);
+            background: #ede9fe;
+            color: var(--primary);
+        }
+
+        .role-btn:hover:not(.active) {
+            border-color: #d1d5db;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-wrapper">
+
+        <div class="register-header">
+            <i class="bi bi-person-plus"></i>
+            <h1>Create Account</h1>
+            <p>Join StudentHub to get started</p>
+        </div>
+
+        <div class="register-body">
+
+            <div id="reg-error" class="alert alert-danger  d-none mb-3"></div>
+            <div id="reg-success" class="alert alert-success d-none mb-3"></div>
+
+            <form id="register-form">
+
+                <!-- Account Info -->
+                <div class="section-title">Account Information</div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="fullName" placeholder="e.g. John Smith" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="password" placeholder="Min. 6 characters"
+                            required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Role *</label>
+                        <div class="role-toggle">
+                            <button type="button" class="role-btn active" data-role="student"
+                                onclick="setRole('student')">
+                                <i class="bi bi-mortarboard"></i> Student
+                            </button>
+                            <button type="button" class="role-btn" data-role="instructor"
+                                onclick="setRole('instructor')">
+                                <i class="bi bi-person-workspace"></i> Instructor
+                            </button>
+                        </div>
+                        <input type="hidden" id="role" value="student">
+                    </div>
+                </div>
+
+                <!-- Academic Info — shown for student only -->
+                <div id="academic-section">
+                    <div class="section-title">Academic Information</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Department *</label>
+                            <select class="form-select" id="department">
+                                <option value="">Loading departments...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Program *</label>
+                            <input type="text" class="form-control" id="program"
+                                placeholder="e.g. Computer Engineering">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Info -->
+                <div class="section-title">Personal Information</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" id="phone" placeholder="e.g. 0812345678" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth *</label>
+                        <input type="date" class="form-control" id="dob" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Gender *</label>
+                        <select class="form-select" id="gender" required>
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Address *</label>
+                        <input type="text" class="form-control" id="address" placeholder="Your full address" required>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="section-title">Emergency Contact</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Name *</label>
+                        <input type="text" class="form-control" id="ecName" placeholder="Emergency contact name"
+                            required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Phone *</label>
+                        <input type="tel" class="form-control" id="ecPhone" placeholder="Emergency contact phone"
+                            required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register" id="register-btn">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </button>
+
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="login.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/main.js"></script>
+    <script src="../scripts/auth.js"></script>
+    <script>
+        // ── Role toggle ───────────────────────────────────────────────────────────────
+        function setRole(role) {
+            document.getElementById("role").value = role;
+            document.querySelectorAll(".role-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.role === role);
+            });
+            // Show/hide academic section for student only
+            const academicSection = document.getElementById("academic-section");
+            academicSection.style.display = role === "student" ? "block" : "none";
+        }
+
+        // ── Load departments from /auth/majors/ ───────────────────────────────────────
+        async function loadDepartments() {
+            const select = document.getElementById("department");
+            try {
+                const response = await fetch(`${API_BASE}/auth/majors/`);
+                if (!response.ok) throw new Error();
+                const majors = await response.json();
+
+                if (majors && majors.length > 0) {
+                    select.innerHTML =
+                        `<option value="">Select Department</option>` +
+                        majors.map(m =>
+                            `<option value="${m.name}">${m.name}</option>`
+                        ).join("");
+                } else {
+                    // Fallback static list
+                    setStaticDepartments(select);
+                }
+            } catch {
+                setStaticDepartments(select);
+            }
+        }
+
+        function setStaticDepartments(select) {
+            select.innerHTML = `
+        <option value="">Select Department</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Engineering">Engineering</option>
+        <option value="Business">Business</option>
+        <option value="Science">Science</option>
+        <option value="Art">Art</option>
+        <option value="Health">Health</option>
+        <option value="Education">Education</option>
+        <option value="Law">Law</option>`;
+        }
+
+        // ── Submit ────────────────────────────────────────────────────────────────────
+        document.getElementById("register-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById("register-btn");
+            const errorDiv = document.getElementById("reg-error");
+            const successDiv = document.getElementById("reg-success");
+
+            errorDiv.classList.add("d-none");
+            successDiv.classList.add("d-none");
+
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+
+            if (password.length < 6) {
+                errorDiv.textContent = "Password must be at least 6 characters.";
+                errorDiv.classList.remove("d-none");
+                return;
+            }
+
+            // Validate department/program for students
+            if (role === "student") {
+                const dept = document.getElementById("department").value;
+                const prog = document.getElementById("program").value.trim();
+                if (!dept) {
+                    errorDiv.textContent = "Please select a department.";
+                    errorDiv.classList.remove("d-none");
+                    document.getElementById("department").focus();
+                    return;
+                }
+                if (!prog) {
+                    errorDiv.textContent = "Please enter your program.";
+                    errorDiv.classList.remove("d-none");
+                    document.getElementById("program").focus();
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Creating account...`;
+
+            try {
+                const payload = {
+                    full_name: document.getElementById("fullName").value,
+                    email: document.getElementById("email").value,
+                    password: password,
+                    role: role,
+                    phone_number: document.getElementById("phone").value,
+                    date_of_birth: document.getElementById("dob").value,
+                    gender: document.getElementById("gender").value,
+                    address: document.getElementById("address").value,
+                    emergency_contact_name: document.getElementById("ecName").value,
+                    emergency_contact_phone: document.getElementById("ecPhone").value
+                };
+
+                // Add department and program for students
+                if (role === "student") {
+                    payload.department = document.getElementById("department").value;
+                    payload.program = document.getElementById("program").value.trim();
+                }
+
+                await apiFetch("/auth/register", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                successDiv.textContent = "Account created successfully! Redirecting to login...";
+                successDiv.classList.remove("d-none");
+                document.getElementById("register-form").reset();
+                setRole("student"); // reset role toggle UI
+
+                setTimeout(() => { window.location.href = "login.html"; }, 2000);
+
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove("d-none");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-person-plus"></i> Create Account`;
+            }
+        });
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        document.addEventListener("DOMContentLoaded", () => {
+            loadDepartments();
+            setRole("student"); // ensure correct initial state
+        });
+    </script>
+
+</body>
+
+</html>

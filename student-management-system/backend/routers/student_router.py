@@ -6,6 +6,7 @@ from models.student import Student
 from models.course import CourseEnrollment
 from models.grade import Grade
 from models.attendance import Attendance
+from models.assignment import Submission
 from schemas.student import StudentResponse, StudentCreate, StudentUpdate
 from core.security import get_current_user
 
@@ -113,10 +114,19 @@ def delete_student(
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
-    
-    student.is_active = False
-    db.add(student)
+
+    # Get associated user
+    user = db.query(User).filter(User.id == student.user_id).first()
+
+    # Hard delete student — cascades to enrollments, grades, attendance, submissions
+    db.delete(student)
+
+    # Hard delete user account too
+    if user:
+        db.delete(user)
+
     db.commit()
+    return None
 
 @router.get("/{student_id}/courses")
 def get_student_courses(
@@ -128,14 +138,28 @@ def get_student_courses(
 ):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
-    
-    if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
-    enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.student_id == student_id).offset(skip).limit(limit).all()
-    return [{"course": enrollment.course, "status": enrollment.status.value, "enrolled_at": enrollment.enrolled_at} for enrollment in enrollments]
+        raise HTTPException(status_code=404, detail="Student not found")
 
+    if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    enrollments = db.query(CourseEnrollment).filter(
+        CourseEnrollment.student_id == student_id
+    ).offset(skip).limit(limit).all()
+
+    result = []
+    for enrollment in enrollments:
+        course = enrollment.course
+        result.append({
+            "enrollment_id": str(enrollment.id),
+            "course_id":     str(course.id) if course else None,  # ← direct field
+            "course":        course,
+            "status":        enrollment.status.value,
+            "enrolled_at":   enrollment.enrolled_at
+        })
+    return result
+
+    
 @router.get("/{student_id}/grades")
 def get_student_grades(
     student_id: str,
@@ -165,9 +189,27 @@ def get_student_attendance(
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
-    
+
     if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
-    
+
     attendance = db.query(Attendance).filter(Attendance.student_id == student_id).offset(skip).limit(limit).all()
     return attendance
+
+@router.get("/{student_id}/submissions")
+def get_student_submissions(
+    student_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=1000),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    if current_user.role.value != "admin" and str(current_user.id) != str(student.user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized")
+
+    submissions = db.query(Submission).filter(Submission.student_id == student_id).offset(skip).limit(limit).all()
+    return submissions

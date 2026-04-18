@@ -104,8 +104,16 @@
 
                 <div class="dashboard-card">
                     <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="Search by student or course...">
-                        <input type="date" id="date-filter" style="padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 8px; max-width: 200px;">
+                        <input type="text" id="search-input" placeholder="Search by student, course or status...">
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input type="date" id="date-filter" style="padding:10px 15px;border:1px solid #e5e7eb;border-radius:8px;">
+                            <button onclick="clearDateFilter()" title="Clear date filter" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;
+                                       background:white;cursor:pointer;color:#6b7280;font-size:14px;
+                                       transition:all 0.2s;" onmouseover="this.style.background='#f3f4f6'"
+                                onmouseout="this.style.background='white'">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </button>
+                        </div>
                     </div>
 
                     <div style="overflow-x: auto;">
@@ -198,7 +206,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../scripts/main.js"></script>
     <script src="../../scripts/auth.js"></script>
     <script src="../../scripts/attendance.js"></script>
@@ -236,40 +243,97 @@
                 late: "badge-late",
                 excused: "badge bg-secondary text-white"
             };
-            return `<span class="${map[status] || 'badge bg-secondary'}">${status}</span>`;
+            return `<span class="${map[status] || "badge bg-secondary"}">${status}</span>`;
         }
 
-        // ── Load ──────────────────────────────────────────────────────────────────────
+        // ── Load dropdowns ────────────────────────────────────────────────────────────
         async function loadDropdowns() {
             try {
                 const [students, courses] = await Promise.all([
                     apiFetch("/students/?skip=0&limit=1000"),
                     apiFetch("/courses/?skip=0&limit=1000")
                 ]);
-                allStudents = students;
-                allCourses = courses;
+                allStudents = Array.isArray(students) ? students : [];
+                allCourses = Array.isArray(courses) ? courses : [];
 
+                // Populate student dropdown
                 document.getElementById("attStudentId").innerHTML =
                     `<option value="">Select Student</option>` +
-                    students.map(s => `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`).join("");
+                    allStudents.map(s =>
+                        `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`
+                    ).join("");
 
+                // Default course dropdown state
                 document.getElementById("attCourseId").innerHTML =
-                    `<option value="">Select Course</option>` +
-                    courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.title}</option>`).join("");
+                    `<option value="">Select a student first</option>`;
+
+                // ── When student changes — load only their enrolled courses ──
+                const studentSelect = document.getElementById("attStudentId");
+
+                async function onStudentChange() {
+                    const studentId = studentSelect.value;
+                    const courseSelect = document.getElementById("attCourseId");
+
+                    if (!studentId) {
+                        courseSelect.innerHTML = `<option value="">Select a student first</option>`;
+                        return;
+                    }
+
+                    courseSelect.innerHTML = `<option value="">Loading...</option>`;
+                    courseSelect.disabled = true;
+
+                    try {
+                        const enrollments = await apiFetch(`/students/${studentId}/courses`);
+                        const enrolledCourseIds = new Set(
+                            Array.isArray(enrollments)
+                                ? enrollments.map(e => e.course_id || e.course?.id).filter(Boolean)
+                                : []
+                        );
+
+                        const enrolledCourses = allCourses.filter(c =>
+                            enrolledCourseIds.has(c.id)
+                        );
+
+                        courseSelect.disabled = false;
+
+                        if (!enrolledCourses.length) {
+                            courseSelect.innerHTML =
+                                `<option value="">No courses enrolled</option>`;
+                            return;
+                        }
+
+                        courseSelect.innerHTML =
+                            `<option value="">Select Course</option>` +
+                            enrolledCourses.map(c =>
+                                `<option value="${c.id}">${c.course_code} - ${c.title}</option>`
+                            ).join("");
+
+                    } catch (err) {
+                        courseSelect.disabled = false;
+                        courseSelect.innerHTML = `<option value="">Failed to load courses</option>`;
+                    }
+                }
+
+                // Remove old listener and attach fresh one
+                studentSelect.removeEventListener("change", studentSelect._onStudentChange);
+                studentSelect._onStudentChange = onStudentChange;
+                studentSelect.addEventListener("change", onStudentChange);
+
             } catch (err) {
                 console.error("Dropdown error:", err);
             }
         }
 
+        // ── Load attendance ───────────────────────────────────────────────────────────
         async function loadAttendance() {
+            const tbody = document.getElementById("attendance-list");
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
             try {
-                const tbody = document.getElementById("attendance-list");
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">
-                <div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>`;
-                allAttendance = await apiFetch("/attendance/?skip=0&limit=100");
+                allAttendance = await apiFetch("/attendance/?skip=0&limit=1000");
                 renderAttendance(allAttendance);
             } catch (err) {
-                document.getElementById("attendance-list").innerHTML =
+                tbody.innerHTML =
                     `<tr><td colspan="6" class="text-center text-danger py-4">${err.message}</td></tr>`;
             }
         }
@@ -291,10 +355,11 @@
             tbody.innerHTML = records.map(r => `
             <tr>
                 <td>${studentMap[r.student_id] || r.student_id}</td>
-                <td>${courseMap[r.course_id] || `<span class="text-muted fst-italic">Unknown (${r.course_id.slice(0, 8)}...)</span>`}</td>
+                <td>${courseMap[r.course_id] ||
+                `<span class="text-muted fst-italic">Deleted Course</span>`}</td>
                 <td>${r.date}</td>
                 <td>${statusBadge(r.status)}</td>
-                <td>${r.attendance_percentage != null ? r.attendance_percentage + "%" : "-"}</td>
+                <td>${r.remarks || "—"}</td>
                 <td>
                     <button class="btn btn-sm btn-edit" onclick="openEditModal('${r.id}')">
                         <i class="bi bi-pencil"></i> Edit
@@ -325,18 +390,30 @@
                 const matchDate = !dateFilter || r.date === dateFilter;
                 return matchText && matchDate;
             });
+
             renderAttendance(filtered);
+        }
+
+        function clearDateFilter() {
+            document.getElementById("date-filter").value = "";
+            filterAttendance();
         }
 
         // ── Modals ────────────────────────────────────────────────────────────────────
         function openAddModal() {
             editingAttId = null;
-            document.getElementById("attendanceForm").reset();
             document.getElementById("modalTitle").textContent = "Record Attendance";
             document.getElementById("modalError").classList.add("d-none");
-            document.getElementById("attDate").value = new Date().toISOString().split("T")[0];
+
+            // Reset manually — do NOT use form.reset() to avoid wiping dynamic course dropdown
+            document.getElementById("attStudentId").value = "";
             document.getElementById("attStudentId").disabled = false;
+            document.getElementById("attCourseId").innerHTML = `<option value="">Select a student first</option>`;
             document.getElementById("attCourseId").disabled = false;
+            document.getElementById("attDate").value = new Date().toISOString().split("T")[0];
+            document.getElementById("attDate").disabled = false;
+            document.getElementById("attStatus").value = "present";
+
             new bootstrap.Modal(document.getElementById("attendanceModal")).show();
         }
 
@@ -349,8 +426,8 @@
             document.getElementById("modalError").classList.add("d-none");
 
             document.getElementById("attStudentId").value = r.student_id;
-            document.getElementById("attCourseId").value = r.course_id;
             document.getElementById("attStudentId").disabled = true;
+            document.getElementById("attCourseId").value = r.course_id;
             document.getElementById("attCourseId").disabled = true;
             document.getElementById("attDate").value = r.date;
             document.getElementById("attDate").disabled = true;

@@ -258,62 +258,125 @@
         }
 
         async function loadDropdowns() {
-            try {
-                const [students, courses] = await Promise.all([
-                    apiFetch("/students/?skip=0&limit=100"),
-                    apiFetch("/courses/?skip=0&limit=100")
-                ]);
-                allStudents = students;
-                allCourses = courses;
+                try {
+                    const [courses, students] = await Promise.all([
+                        apiFetch("/courses/?skip=0&limit=1000"),
+                        apiFetch("/students/?skip=0&limit=1000")
+                    ]);
 
-                document.getElementById("gradeStudentId").innerHTML =
-                    `<option value="">Select Student</option>` +
-                    students.map(s => `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`).join("");
+                    allCourses = Array.isArray(courses) ? courses : [];
+                    allStudents = Array.isArray(students) ? students : [];
 
-                document.getElementById("gradeCourseId").innerHTML =
-                    `<option value="">Select Course</option>` +
-                    courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.title}</option>`).join("");
-            } catch (err) {
-                console.error("Dropdown load error:", err);
+                    // Populate course dropdown
+                    const courseSelect = document.getElementById("gradeCourseId");
+                    courseSelect.innerHTML = `<option value="">Select Course</option>` +
+                        allCourses.map(c =>
+                            `<option value="${c.id}">${c.course_code} - ${c.title}</option>`
+                        ).join("");
+
+                    // ── Attach event listener ONCE using a named handler ──
+                    async function onCourseChange() {
+                        const courseId = courseSelect.value;
+                        const studentSelect = document.getElementById("gradeStudentId");
+
+                        if (!courseId) {
+                            studentSelect.innerHTML = `<option value="">Select a course first</option>`;
+                            return;
+                        }
+
+                        studentSelect.innerHTML = `<option value="">Loading...</option>`;
+                        studentSelect.disabled = true;
+
+                        try {
+                            const enrollments = await apiFetch(`/courses/${courseId}/enrollments`);
+                            const enrolledStudentIds = new Set(
+                                Array.isArray(enrollments)
+                                    ? enrollments.map(e => e.student_id)
+                                    : []
+                            );
+
+                            const enrolledStudents = allStudents.filter(s =>
+                                enrolledStudentIds.has(s.id)
+                            );
+
+                            studentSelect.disabled = false;
+
+                            if (!enrolledStudents.length) {
+                                studentSelect.innerHTML =
+                                    `<option value="">No students enrolled in this course</option>`;
+                                return;
+                            }
+
+                            studentSelect.innerHTML = `<option value="">Select Student</option>` +
+                                enrolledStudents.map(s =>
+                                    `<option value="${s.id}">${s.full_name} (${s.student_id_number})</option>`
+                                ).join("");
+
+                        } catch (err) {
+                            console.error("Enrollment load error:", err);
+                            studentSelect.disabled = false;
+                            studentSelect.innerHTML = `<option value="">Failed to load students</option>`;
+                        }
+                    }
+
+                    // Remove any previous listener before adding — prevents duplicates
+                    courseSelect.removeEventListener("change", courseSelect._onCourseChange);
+                    courseSelect._onCourseChange = onCourseChange;
+                    courseSelect.addEventListener("change", onCourseChange);
+
+                    // Initial student dropdown state
+                    document.getElementById("gradeStudentId").innerHTML =
+                        `<option value="">Select a course first</option>`;
+
+                } catch (err) {
+                    console.error("Dropdown error:", err);
+                }
             }
-        }
-
         // ── Render ────────────────────────────────────────────────────────────────────
         function renderGrades(grades) {
-            const tbody = document.getElementById("grades-list");
-            if (!grades || grades.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
-                <i class="bi bi-inbox"></i><p>No grades recorded</p></td></tr>`;
-                return;
+                const tbody = document.getElementById("grades-list");
+                if (!grades || grades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+            <i class="bi bi-inbox"></i><p>No grades recorded</p></td></tr>`;
+                    return;
+                }
+
+                const studentMap = {};
+                allStudents.forEach(s => studentMap[s.id] = s.full_name || s.student_id_number);
+                const courseMap = {};
+                allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
+
+                tbody.innerHTML = grades.map(g => {
+                    const { letter, cls } = scoreToLetter(g.score, g.max_score);
+                    const pct = ((g.score / g.max_score) * 100).toFixed(1);
+
+                    // ── Fix: use course_name snapshot if course_id is null ──
+                    const courseName = g.course_id
+                        ? (courseMap[g.course_id] || g.course_name || "Unknown Course")
+                        : (g.course_name
+                            ? `<span style="color:#6b7280;">${g.course_name}</span>
+                   <span class="badge bg-secondary ms-1" style="font-size:10px;">Deleted</span>`
+                            : `<span class="text-muted fst-italic">Deleted Course</span>`);
+
+                    return `
+                     <tr>
+                        <td>${studentMap[g.student_id] || g.student_id}</td>
+                        <td>${courseName}</td>
+                        <td><span class="badge text-capitalize">${g.component_type}</span></td>
+                        <td>${g.score} / ${g.max_score}</td>
+                        <td><span class="grade-badge ${cls}">${letter} (${pct}%)</span></td>
+                        <td>${g.graded_at ? g.graded_at.split("T")[0] : "—"}</td>
+                        <td>
+                            <button class="btn btn-sm btn-edit" onclick="openEditModal('${g.id}')">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${g.id}')">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join("");
             }
-
-            const studentMap = {};
-            allStudents.forEach(s => studentMap[s.id] = s.full_name || s.student_id_number);
-            const courseMap = {};
-            allCourses.forEach(c => courseMap[c.id] = `${c.course_code} - ${c.title}`);
-
-            tbody.innerHTML = grades.map(g => {
-                const { letter, cls } = scoreToLetter(g.score, g.max_score);
-                const pct = ((g.score / g.max_score) * 100).toFixed(1);
-                return `
-            <tr>
-                <td>${studentMap[g.student_id] || g.student_id}</td>
-                <td>${courseMap[g.course_id] || g.course_id}</td>
-                <td><span class="badge text-capitalize">${g.component_type}</span></td>
-                <td>${g.score} / ${g.max_score}</td>
-                <td><span class="grade-badge ${cls}">${letter} (${pct}%)</span></td>
-                <td>${g.graded_at ? g.graded_at.split("T")[0] : "-"}</td>
-                <td>
-                    <button class="btn btn-sm btn-edit" onclick="openEditModal('${g.id}')">
-                        <i class="bi bi-pencil"></i> Edit
-                    </button>
-                    <button class="btn btn-sm btn-delete" onclick="openDeleteModal('${g.id}')">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </td>
-            </tr>`;
-            }).join("");
-        }
 
         // ── Search ────────────────────────────────────────────────────────────────────
         function searchGrades() {
@@ -333,19 +396,26 @@
 
         // ── Modals ────────────────────────────────────────────────────────────────────
         function openAddModal() {
-            editingGradeId = null;
-            document.getElementById("gradeForm").reset();
-            document.getElementById("modalTitle").textContent = "Record Grade";
-            document.getElementById("modalError").classList.add("d-none");
-            document.getElementById("gradeMaxScore").value = "100";
-            document.getElementById("gradeWeight").value = "1.0";
+                editingGradeId = null;
+                document.getElementById("modalTitle").textContent = "Record Grade";
+                document.getElementById("modalError").classList.add("d-none");
 
-            // Re-enable student/course dropdowns for add
-            document.getElementById("gradeStudentId").disabled = false;
-            document.getElementById("gradeCourseId").disabled = false;
+                // Reset only the non-dynamic fields — do NOT call form.reset()
+                // because it wipes the dynamically loaded student dropdown
+                document.getElementById("gradeCourseId").value = "";
+                document.getElementById("gradeStudentId").innerHTML = `<option value="">Select a course first</option>`;
+                document.getElementById("gradeComponentType").value = "assignment";
+                document.getElementById("gradeScore").value = "";
+                document.getElementById("gradeMaxScore").value = "100";
+                document.getElementById("gradeWeight").value = "1.0";
+                document.getElementById("gradeRemarks").value = "";
 
-            new bootstrap.Modal(document.getElementById("gradeModal")).show();
-        }
+                // Re-enable student/course dropdowns for add
+                document.getElementById("gradeStudentId").disabled = false;
+                document.getElementById("gradeCourseId").disabled = false;
+
+                new bootstrap.Modal(document.getElementById("gradeModal")).show();
+            }
 
         function openEditModal(gradeId) {
             editingGradeId = gradeId;

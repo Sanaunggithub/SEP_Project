@@ -246,48 +246,57 @@
 
         // ── Load all data and render ──────────────────────────────────────────────────
         async function loadAnalytics() {
-            try {
-                const [students, courses, grades, attendance, assignments, enrollmentTrends, gradeDistribution, attendancePatterns, instructors] =
-                    await Promise.allSettled([
+                try {
+                    const [
+                        studentsRes,
+                        activeCoursesRes,
+                        allCoursesRes,
+                        gradesRes,
+                        attendanceRes,
+                        assignmentsRes,
+                        attendancePatternsRes,
+                        instructorsRes
+                    ] = await Promise.allSettled([
                         apiFetch("/students/?skip=0&limit=1000"),
-                        apiFetch("/courses/?skip=0&limit=1000"),
+                        apiFetch("/courses/?skip=0&limit=1000&active_only=true"),  // for metrics count
+                        apiFetch("/courses/?skip=0&limit=1000"),                    // all courses for charts/tables
                         apiFetch("/grades/?skip=0&limit=1000"),
                         apiFetch("/attendance/?skip=0&limit=1000"),
                         apiFetch("/assignments/?skip=0&limit=1000"),
-                        apiFetch("/analytics/enrollment-trends"),
-                        apiFetch("/analytics/grade-distribution"),
                         apiFetch("/analytics/attendance-patterns"),
                         apiFetch("/auth/users?role=instructor&limit=1000")
                     ]);
 
-                const studentList = students.status === "fulfilled" ? students.value : [];
-                const courseList = courses.status === "fulfilled" ? courses.value : [];
-                const gradeList = grades.status === "fulfilled" ? grades.value : [];
-                const attendanceList = attendance.status === "fulfilled" ? attendance.value : [];
-                const assignmentList = assignments.status === "fulfilled" ? assignments.value : [];
-                const enrollData = enrollmentTrends.status === "fulfilled" ? enrollmentTrends.value : {};
-                const gradeData = gradeDistribution.status === "fulfilled" ? gradeDistribution.value : {};
-                const attData = attendancePatterns.status === "fulfilled" ? attendancePatterns.value : {};
-                const instructorList = instructors.status === "fulfilled" ? instructors.value : [];
+                    const studentList = studentsRes.status === "fulfilled" ? studentsRes.value : [];
+                    const activeCourseList = activeCoursesRes.status === "fulfilled" ? activeCoursesRes.value : [];
+                    const allCourseList = allCoursesRes.status === "fulfilled" ? allCoursesRes.value : [];
+                    const gradeList = gradesRes.status === "fulfilled" ? gradesRes.value : [];
+                    const attendanceList = attendanceRes.status === "fulfilled" ? attendanceRes.value : [];
+                    const assignmentList = assignmentsRes.status === "fulfilled" ? assignmentsRes.value : [];
+                    const attData = attendancePatternsRes.status === "fulfilled" ? attendancePatternsRes.value : {};
+                    const instructorList = instructorsRes.status === "fulfilled" ? instructorsRes.value : [];
 
-                // Build instructor lookup map
-                const instructorMap = {};
-                instructorList.forEach(u => instructorMap[u.id] = u.full_name);
+                    // Build instructor lookup map
+                    const instructorMap = {};
+                    instructorList.forEach(u => instructorMap[u.id] = u.full_name || u.email);
 
-                renderMetrics(studentList, courseList, gradeList, attData);
-                renderGradeChart(gradeList);
-                renderCourseChart(courseList);
-                renderAttendanceChart(attData);
-                renderSubmissionChart(assignmentList);
-                renderTopPerformers(studentList, gradeList, attendanceList);
-                renderCourseStats(courseList, gradeList, attendanceList);
-                renderCourseStats(courseList, gradeList, attendanceList, instructorMap);
+                    // ── Metrics use activeCourseList for correct active count ──
+                    renderMetrics(studentList, activeCourseList, gradeList, attData);
 
-            } catch (err) {
-                console.error("Analytics load error:", err);
+                    // ── Charts use allCourseList to show all courses ──
+                    renderGradeChart(gradeList);
+                    renderCourseChart(allCourseList);
+                    renderAttendanceChart(attData);
+                    renderSubmissionChart(assignmentList);
+
+                    // ── Tables use allCourseList ──
+                    renderTopPerformers(studentList, gradeList, attendanceList);
+                    renderCourseStats(allCourseList, gradeList, attendanceList, instructorMap); // ← called ONCE with all params
+
+                } catch (err) {
+                    console.error("Analytics load error:", err);
+                }
             }
-        }
-
         // ── Metrics ───────────────────────────────────────────────────────────────────
         function renderMetrics(students, courses, grades, attData) {
             document.getElementById("total-students").textContent = students.length;

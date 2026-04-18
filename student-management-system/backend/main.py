@@ -35,4 +35,4 @@ app.include_router(grade_router.router)
 app.include_router(attendance_router.router)
 app.include_router(assignment_router.router)
 app.include_router(analytics_router.router)
-app.include_router(auth_router.router)
+

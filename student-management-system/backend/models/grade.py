@@ -13,13 +13,14 @@ class Grade(BaseModel):
     __tablename__ = "grades"
     
     student_id = Column(ForeignKey('students.id'), nullable=False, index=True)
-    course_id = Column(ForeignKey('courses.id'), nullable=False, index=True)
+    course_id = Column(ForeignKey('courses.id', ondelete="SET NULL"), nullable=True, index=True)
     component_type = Column(Enum(ComponentType), nullable=False)
     score = Column(Float, nullable=False)
     max_score = Column(Float, nullable=False)
     weight = Column(Float, nullable=False)
     graded_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     remarks = Column(Text, nullable=True)
+    course_name = Column(String(255), nullable = True)
 
     # Relationships
     student = relationship("Student", back_populates="grades")

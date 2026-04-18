@@ -11,6 +11,12 @@ async function apiFetch(endpoint, options = {}) {
     }
     const response = await fetch(API_BASE + endpoint, { ...options, headers });
     if (response.status === 204) return null;
+    
+    if (response.status === 401) {
+        localStorage.clear();
+        window.location.href = "/frontend/pages/login.html";
+        return;
+    }
     if (!response.ok) {
         const err = await response.json().catch(() => ({ detail: "Request failed" }));
         throw new Error(err.detail || "Request failed");

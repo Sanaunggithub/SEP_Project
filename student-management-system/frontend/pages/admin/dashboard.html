@@ -202,7 +202,7 @@
         </a>
         <div class="navbar-actions">
             <a href="../../index.html" class="btn-back">
-                <i class="bi bi-arrow-left"></i> Back To Dashboard
+                <i class="bi bi-arrow-left"></i> Home
             </a>
             <button class="btn-logout" onclick="handleLogout()">
                 <i class="bi bi-box-arrow-right"></i> Logout
@@ -272,9 +272,9 @@
 
             try {
                 const [students, courses, assignments, attendance] = await Promise.allSettled([
-                    apiFetch("/students/?skip=0&limit=100"),
-                    apiFetch("/courses/?skip=0&limit=100"),
-                    apiFetch("/assignments/?skip=0&limit=100"),
+                    apiFetch("/students/?skip=0&limit=1000"),
+                    apiFetch("/courses/?skip=0&limit=1000&active_only=true"),
+                    apiFetch("/assignments/?skip=0&limit=1000"),
                     apiFetch("/analytics/attendance-patterns")
                 ]);
 
